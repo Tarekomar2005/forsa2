@@ -1,19 +1,40 @@
 {
   "name": "forsa-website",
-  "version": "1.0.0",
-  "description": "Forsa - Women's Handbags Website",
+  "version": "1.1.0",
+  "description": "Forsa - Women's Handbags Website with Google Sheets Database Integration",
   "main": "index.html",
   "scripts": {
     "start": "python -m http.server 3000",
     "dev": "python -m http.server 3000",
     "sass": "sass css/style.scss css/style.css --watch",
-    "build-sass": "sass css/style.scss css/style.css --style compressed"
+    "build-sass": "sass css/style.scss css/style.css --style compressed",
+    "test-sheets": "python -m http.server 3000 && start test-google-sheets.html",
+    "admin": "python -m http.server 3000 && start admin-panel.html"
   },
-  "keywords": ["handbags", "fashion", "women", "arabic", "ecommerce"],
+  "keywords": ["handbags", "fashion", "women", "arabic", "ecommerce", "google-sheets", "database"],
   "author": "Forsa Team",
   "license": "MIT",
   "devDependencies": {
     "sass": "^1.69.0",
     "live-server": "^1.2.2"
+  },
+  "features": {
+    "googleSheetsIntegration": {
+      "description": "Automatic saving of contact forms and orders to Google Sheets",
+      "files": [
+        "js/script.js (modified with Google Sheets functions)",
+        "google-apps-script.js (Google Apps Script code)",
+        "admin-panel.html (Local data management)",
+        "test-google-sheets.html (Testing interface)",
+        "GOOGLE_SHEETS_SETUP.md (Setup guide)"
+      ],
+      "benefits": [
+        "Automatic data collection",
+        "No server required",
+        "Email notifications",
+        "Local backup system",
+        "Auto-sync functionality"
+      ]
+    }
   }
 }

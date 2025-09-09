@@ -138,41 +138,79 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle quick order buttons (Direct to WhatsApp)
+    // Handle quick order buttons (Direct to WhatsApp + Google Sheets)
     document.querySelectorAll('.quick-order-btn').forEach(button => {
         button.addEventListener('click', function() {
+            const originalText = this.textContent;
+            this.textContent = 'جاري المعالجة...';
+            this.disabled = true;
+            
             const productCard = this.closest('.product-card');
             const productName = productCard.querySelector('.product-name').textContent;
             const productPrice = productCard.querySelector('.product-price').textContent;
+            const productCategory = productCard.querySelector('.product-category').textContent;
             
-            const message = `مرحباً، أريد طلب ${productName} بسعر ${productPrice}`;
-            const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(message)}`;
-            
-            window.open(whatsappURL, '_blank');
+            // Save to Google Sheets first, then send to WhatsApp
+            saveQuickOrderToGoogleSheets(productName, productPrice, productCategory)
+                .then(() => {
+                    sendQuickOrderToWhatsApp(productName, productPrice, productCategory);
+                    showNotification(`تم إرسال طلب ${productName} وحفظه بنجاح!`, 'success');
+                })
+                .catch((error) => {
+                    console.error('Error saving order to Google Sheets:', error);
+                    // Still send to WhatsApp even if Google Sheets fails
+                    sendQuickOrderToWhatsApp(productName, productPrice, productCategory);
+                    // Save locally as backup
+                    saveOrderLocally(productName, productPrice, productCategory);
+                    showNotification(`تم إرسال طلب ${productName}! (تم الحفظ المحلي)`, 'warning');
+                })
+                .finally(() => {
+                    // Restore button state
+                    this.textContent = originalText;
+                    this.disabled = false;
+                });
         });
     });
 });
 
-// Contact form submission
+// Contact form submission with Google Sheets integration
 document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.textContent;
+    
+    // Show loading state
+    submitBtn.textContent = 'جاري الإرسال...';
+    submitBtn.disabled = true;
     
     const formData = new FormData(this);
     const name = formData.get('name');
     const email = formData.get('email');
     const message = formData.get('message');
     
-    // WhatsApp message for contact form
-    const contactMessage = `مرحباً، اسمي ${name}\nالإيميل: ${email}\nالرسالة: ${message}`;
-    const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(contactMessage)}`;
-    
-    window.open(whatsappURL, '_blank');
-    
-    // Reset form
-    this.reset();
-    
-    // Show success message
-    alert('تم إرسال رسالتك بنجاح! سيتم توجيهك إلى واتساب.');
+    // Save to Google Sheets first, then send to WhatsApp
+    saveContactToGoogleSheets(name, email, message)
+        .then(() => {
+            // After successful save, send to WhatsApp
+            sendContactMessageToWhatsApp(name, email, message);
+            showNotification('تم إرسال رسالتك وحفظها بنجاح!', 'success');
+            this.reset();
+        })
+        .catch((error) => {
+            console.error('Error saving to Google Sheets:', error);
+            // Still send to WhatsApp even if Google Sheets fails
+            sendContactMessageToWhatsApp(name, email, message);
+            // Save locally as backup
+            saveContactLocally(name, email, message);
+            showNotification('تم إرسال رسالتك! (تم الحفظ المحلي)', 'warning');
+            this.reset();
+        })
+        .finally(() => {
+            // Restore button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
 });
 
 // Social media links functionality
@@ -184,7 +222,9 @@ document.querySelectorAll('.social-link, .footer-social-link').forEach(link => {
         let url = '';
         
         if (icon.contains('fa-whatsapp')) {
-            url = 'https://wa.me/201234567890';
+            // Send a welcome message when clicking WhatsApp
+            const welcomeMessage = '🌹 مرحباً بك في Forsa!\n\nنحن متخصصون في الشنط الحريمي الأنيقة والعصرية\n\nكيف يمكنني مساعدتك اليوم؟';
+            url = `https://wa.me/201234567890?text=${encodeURIComponent(welcomeMessage)}`;
         } else if (icon.contains('fa-instagram')) {
             url = 'https://instagram.com/forsa_bags';
         } else if (icon.contains('fa-facebook')) {
@@ -560,25 +600,64 @@ function updateCartUI() {
     });
 }
 
-function proceedToCheckout() {
-    if (cart.length === 0) {
-        showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
-        return;
+// Enhanced WhatsApp Order Function
+function sendOrderToWhatsApp() {
+    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    let orderMessage = '🛍️ *طلب جديد من موقع Forsa*\n';
+    orderMessage += '═══════════════════════\n\n';
+    
+    // Customer information if available
+    if (customerInfo.name) {
+        orderMessage += '👤 *بيانات العميل:*\n';
+        orderMessage += `📛 الاسم: ${customerInfo.name}\n`;
+        orderMessage += `📱 الهاتف: ${customerInfo.phone}\n`;
+        if (customerInfo.email) orderMessage += `📧 الإيميل: ${customerInfo.email}\n`;
+        orderMessage += `📍 المدينة: ${customerInfo.city}\n`;
+        orderMessage += `🏠 العنوان: ${customerInfo.address}\n`;
+        if (customerInfo.paymentMethod) {
+            orderMessage += `💳 طريقة الدفع: ${getPaymentMethodText(customerInfo.paymentMethod)}\n`;
+        }
+        if (customerInfo.notes) {
+            orderMessage += `📝 ملاحظات: ${customerInfo.notes}\n`;
+        }
+        orderMessage += '\n═══════════════════════\n\n';
     }
     
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    let orderMessage = 'مرحباً! أريد طلب المنتجات التالية:\n\n';
+    // Products information
+    orderMessage += '🛒 *المنتجات المطلوبة:*\n';
+    orderMessage += `📦 إجمالي القطع: ${totalItems}\n\n`;
     
     cart.forEach((item, index) => {
-        orderMessage += `${index + 1}. ${item.name}\nالكمية: ${item.quantity}\nالسعر: ${item.price * item.quantity} جنيه\n\n`;
+        const itemTotal = item.price * item.quantity;
+        orderMessage += `${index + 1}. *${item.name}*\n`;
+        orderMessage += `   📂 الفئة: ${item.category}\n`;
+        orderMessage += `   🔢 الكمية: ${item.quantity}\n`;
+        orderMessage += `   💰 السعر: ${item.price} جنيه\n`;
+        orderMessage += `   💵 الإجمالي: ${itemTotal} جنيه\n\n`;
     });
     
-    orderMessage += `إجمالي المبلغ: ${totalPrice} جنيه`;
+    orderMessage += '═══════════════════════\n';
+    orderMessage += `💳 *إجمالي المبلغ: ${totalPrice} جنيه*\n`;
+    orderMessage += '═══════════════════════\n\n';
+    orderMessage += '📅 تاريخ الطلب: ' + new Date().toLocaleDateString('ar-EG') + '\n';
+    orderMessage += '🕐 وقت الطلب: ' + new Date().toLocaleTimeString('ar-EG') + '\n\n';
+    orderMessage += 'شكراً لاختياركم Forsa! 🌹';
     
-    const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(orderMessage)}`;
+    // Replace your phone number here
+    const whatsappNumber = '201234567890'; // Replace with actual number
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
+    
     window.open(whatsappURL, '_blank');
     
     showNotification('جاري تحويلك للواتساب لإتمام الطلب...');
+    
+    // Optional: Clear cart after sending
+    if (confirm('هل تريد إفراغ السلة بعد إرسال الطلب؟')) {
+        clearCart();
+        toggleCart(); // Close cart sidebar
+    }
 }
 
 // Customer Information Management
@@ -707,6 +786,9 @@ function exportToExcel() {
         // Save file
         XLSX.writeFile(workbook, fileName);
         
+        // Show sharing options
+        showSharingOptions(fileName);
+        
         showNotification('تم تصدير الطلب إلى Excel بنجاح!');
         
     } catch (error) {
@@ -724,3 +806,335 @@ function getPaymentMethodText(method) {
     };
     return methods[method] || method;
 }
+
+// Show sharing options after Excel export
+function showSharingOptions(fileName) {
+    const message = `تم حفظ ملف Excel: ${fileName}
+
+طرق إرسال الملف:
+
+1. واتساب: ارسل رسالة وارفق الملف
+2. بريد إلكتروني: orders@forsa-bags.com
+3. فيسبوك ميسنجر
+4. تليجرام
+
+هل تريد إرسال تفاصيل الطلب عبر الواتساب؟`;
+    
+    if (confirm(message)) {
+        sendOrderViaWhatsApp();
+    }
+}
+
+// Send order details via WhatsApp
+function sendOrderViaWhatsApp() {
+    const orderSummary = `طلب جديد من Forsa
+
+📝 بيانات العميل:
+الاسم: ${customerInfo.name}
+الهاتف: ${customerInfo.phone}
+المحافظة: ${customerInfo.city}
+العنوان: ${customerInfo.address}
+طريقة الدفع: ${getPaymentMethodText(customerInfo.paymentMethod)}
+
+🛍️ المنتجات:
+${cart.map((item, index) => `${index + 1}. ${item.name} - الكمية: ${item.quantity} - السعر: ${item.price * item.quantity} جنيه`).join('\n')}
+
+💰 إجمالي المبلغ: ${cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)} جنيه
+
+ملف Excel محفوظ في مجلد التحميل للتفاصيل الكاملة.`;
+    
+    const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(orderSummary)}`;
+    window.open(whatsappURL, '_blank');
+}
+
+// Enhanced checkout function
+function proceedToCheckout() {
+    if (cart.length === 0) {
+        showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
+        return;
+    }
+    
+    // Check if customer info exists
+    if (!customerInfo.name) {
+        if (confirm('لإتمام الطلب بأفضل شكل، هل تريد إدخال بياناتك أولاً؟')) {
+            showCustomerForm();
+            return;
+        }
+    }
+    
+    sendOrderToWhatsApp();
+}
+
+// Enhanced WhatsApp Order Function
+function sendOrderToWhatsApp() {
+    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    let orderMessage = '🛍️ *طلب جديد من موقع Forsa*\n';
+    orderMessage += '═══════════════════════\n\n';
+    
+    // Customer information if available
+    if (customerInfo.name) {
+        orderMessage += '👤 *بيانات العميل:*\n';
+        orderMessage += `📛 الاسم: ${customerInfo.name}\n`;
+        orderMessage += `📱 الهاتف: ${customerInfo.phone}\n`;
+        if (customerInfo.email) orderMessage += `📧 الإيميل: ${customerInfo.email}\n`;
+        orderMessage += `📍 المدينة: ${customerInfo.city}\n`;
+        orderMessage += `🏠 العنوان: ${customerInfo.address}\n`;
+        if (customerInfo.paymentMethod) {
+            orderMessage += `💳 طريقة الدفع: ${getPaymentMethodText(customerInfo.paymentMethod)}\n`;
+        }
+        if (customerInfo.notes) {
+            orderMessage += `📝 ملاحظات: ${customerInfo.notes}\n`;
+        }
+        orderMessage += '\n═══════════════════════\n\n';
+    }
+    
+    // Products information
+    orderMessage += '🛒 *المنتجات المطلوبة:*\n';
+    orderMessage += `📦 إجمالي القطع: ${totalItems}\n\n`;
+    
+    cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        orderMessage += `${index + 1}. *${item.name}*\n`;
+        orderMessage += `   📂 الفئة: ${item.category}\n`;
+        orderMessage += `   🔢 الكمية: ${item.quantity}\n`;
+        orderMessage += `   💰 السعر: ${item.price} جنيه\n`;
+        orderMessage += `   💵 الإجمالي: ${itemTotal} جنيه\n\n`;
+    });
+    
+    orderMessage += '═══════════════════════\n';
+    orderMessage += `💳 *إجمالي المبلغ: ${totalPrice} جنيه*\n`;
+    orderMessage += '═══════════════════════\n\n';
+    orderMessage += '📅 تاريخ الطلب: ' + new Date().toLocaleDateString('ar-EG') + '\n';
+    orderMessage += '🕐 وقت الطلب: ' + new Date().toLocaleTimeString('ar-EG') + '\n\n';
+    orderMessage += 'شكراً لاختياركم Forsa! 🌹';
+    
+    // Replace your phone number here
+    const whatsappNumber = '201234567890'; // Replace with actual number
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
+    
+    window.open(whatsappURL, '_blank');
+    
+    showNotification('جاري تحويلك للواتساب لإتمام الطلب...');
+    
+    // Optional: Clear cart after sending
+    if (confirm('هل تريد إفراغ السلة بعد إرسال الطلب؟')) {
+        clearCart();
+        toggleCart(); // Close cart sidebar
+    }
+}
+
+// Quick Order WhatsApp Function
+function sendQuickOrderToWhatsApp(productName, productPrice, productCategory) {
+    let message = '🛍️ *طلب سريع من موقع Forsa*\n';
+    message += '═══════════════════\n\n';
+    message += '🎯 *المنتج المطلوب:*\n';
+    message += `📦 الاسم: *${productName}*\n`;
+    message += `📂 الفئة: ${productCategory}\n`;
+    message += `💰 السعر: ${productPrice}\n\n`;
+    message += '═══════════════════\n';
+    message += '📅 تاريخ الطلب: ' + new Date().toLocaleDateString('ar-EG') + '\n';
+    message += '🕐 وقت الطلب: ' + new Date().toLocaleTimeString('ar-EG') + '\n\n';
+    message += 'أرجو التواصل معي لإتمام الطلب\n';
+    message += 'شكراً! 🌹';
+    
+    const whatsappNumber = '201234567890'; // Replace with actual number
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappURL, '_blank');
+    showNotification(`تم إرسال طلب ${productName} للواتساب`);
+}
+
+// Contact WhatsApp Function
+function sendContactMessageToWhatsApp(name, email, message) {
+    let contactMessage = '📞 *رسالة من موقع Forsa*\n';
+    contactMessage += '═══════════════════\n\n';
+    contactMessage += '👤 *بيانات المرسل:*\n';
+    contactMessage += `📛 الاسم: ${name}\n`;
+    contactMessage += `📧 الإيميل: ${email}\n\n`;
+    contactMessage += '💬 *الرسالة:*\n';
+    contactMessage += `${message}\n\n`;
+    contactMessage += '═══════════════════\n';
+    contactMessage += '📅 تاريخ الإرسال: ' + new Date().toLocaleDateString('ar-EG') + '\n';
+    contactMessage += '🕐 وقت الإرسال: ' + new Date().toLocaleTimeString('ar-EG') + '\n\n';
+    contactMessage += 'شكراً للتواصل! 🌹';
+    
+    const whatsappNumber = '201234567890'; // Replace with actual number
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(contactMessage)}`;
+    
+    window.open(whatsappURL, '_blank');
+    showNotification('تم إرسال رسالتك للواتساب بنجاح!');
+}
+
+// Additional WhatsApp Helper Functions
+function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
+    const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappURL, '_blank');
+}
+
+// =============================================
+// GOOGLE SHEETS DATABASE INTEGRATION
+// =============================================
+
+// Google Apps Script Web App URL
+// Replace this URL with your actual Google Apps Script Web App URL
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+// Function to save contact form data to Google Sheets
+async function saveContactToGoogleSheets(name, email, message) {
+    const data = {
+        action: 'saveContact',
+        name: name,
+        email: email,
+        message: message,
+        timestamp: new Date().toISOString(),
+        source: 'website_contact_form',
+        ip: await getUserIP().catch(() => 'Unknown'),
+        userAgent: navigator.userAgent
+    };
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Important for Google Apps Script
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        // Note: with no-cors mode, we can't read the response
+        // but the request will be sent successfully
+        console.log('Contact data sent to Google Sheets');
+        return Promise.resolve();
+        
+    } catch (error) {
+        console.error('Failed to save to Google Sheets:', error);
+        throw error;
+    }
+}
+
+// Function to save quick order data to Google Sheets
+async function saveQuickOrderToGoogleSheets(productName, productPrice, productCategory) {
+    const data = {
+        action: 'saveOrder',
+        productName: productName,
+        productPrice: productPrice,
+        productCategory: productCategory,
+        orderType: 'quick_order',
+        timestamp: new Date().toISOString(),
+        source: 'website_quick_order',
+        ip: await getUserIP().catch(() => 'Unknown'),
+        userAgent: navigator.userAgent
+    };
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        console.log('Order data sent to Google Sheets');
+        return Promise.resolve();
+        
+    } catch (error) {
+        console.error('Failed to save order to Google Sheets:', error);
+        throw error;
+    }
+}
+
+// Helper function to get user IP (optional)
+async function getUserIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        return 'Unknown';
+    }
+}
+
+// Local storage backup functions
+function saveContactLocally(name, email, message) {
+    try {
+        const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+        const newContact = {
+            id: Date.now(),
+            name: name,
+            email: email,
+            message: message,
+            timestamp: new Date().toISOString(),
+            synced: false
+        };
+        
+        contacts.push(newContact);
+        localStorage.setItem('forsa_contacts', JSON.stringify(contacts));
+        console.log('Contact saved locally as backup');
+        
+    } catch (error) {
+        console.error('Failed to save contact locally:', error);
+    }
+}
+
+function saveOrderLocally(productName, productPrice, productCategory) {
+    try {
+        const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+        const newOrder = {
+            id: Date.now(),
+            productName: productName,
+            productPrice: productPrice,
+            productCategory: productCategory,
+            orderType: 'quick_order',
+            timestamp: new Date().toISOString(),
+            synced: false
+        };
+        
+        orders.push(newOrder);
+        localStorage.setItem('forsa_orders', JSON.stringify(orders));
+        console.log('Order saved locally as backup');
+        
+    } catch (error) {
+        console.error('Failed to save order locally:', error);
+    }
+}
+
+// Function to sync local data to Google Sheets (call this when connection is restored)
+function syncLocalDataToGoogleSheets() {
+    // Sync contacts
+    const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+    const unsyncedContacts = contacts.filter(contact => !contact.synced);
+    
+    unsyncedContacts.forEach(async (contact) => {
+        try {
+            await saveContactToGoogleSheets(contact.name, contact.email, contact.message);
+            contact.synced = true;
+        } catch (error) {
+            console.error('Failed to sync contact:', error);
+        }
+    });
+    
+    // Sync orders
+    const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+    const unsyncedOrders = orders.filter(order => !order.synced);
+    
+    unsyncedOrders.forEach(async (order) => {
+        try {
+            await saveQuickOrderToGoogleSheets(order.productName, order.productPrice, order.productCategory);
+            order.synced = true;
+        } catch (error) {
+            console.error('Failed to sync order:', error);
+        }
+    });
+    
+    // Update local storage
+    localStorage.setItem('forsa_contacts', JSON.stringify(contacts));
+    localStorage.setItem('forsa_orders', JSON.stringify(orders));
+}
+
+// Auto-sync every 5 minutes
+setInterval(syncLocalDataToGoogleSheets, 5 * 60 * 1000);
