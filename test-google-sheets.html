@@ -3,369 +3,467 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار تكامل Google Sheets - Forsa</title>
+    <title>اختبار Google Sheets - Forsa</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Cairo', Arial, sans-serif;
             max-width: 800px;
-            margin: 50px auto;
+            margin: 20px auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #f8f6f3 0%, #f5f3f0 50%, #f0e6c7 100%);
         }
         
-        .test-container {
+        .container {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #b02e2e;
+            text-align: center;
             margin-bottom: 30px;
         }
         
-        .test-form {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        
-        button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s ease;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .test-section {
+            background: #e7f3ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-right: 4px solid #b02e2e;
         }
         
         .status {
             padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        
+        button {
+            background: linear-gradient(135deg, #b02e2e, #d63447);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            width: 100%;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            margin-top: 15px;
-            display: none;
+            margin: 10px 0;
         }
         
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .section-title {
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-        
-        .info-box {
-            background: #e7f3ff;
-            border: 1px solid #b8daff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        
-        .local-data {
-            margin-top: 20px;
-            padding: 15px;
+        .code-block {
             background: #f8f9fa;
+            border: 1px solid #dee2e6;
             border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
         }
         
-        .data-item {
-            background: white;
-            padding: 10px;
+        .copy-btn {
+            background: #6c757d;
+            font-size: 12px;
+            padding: 5px 10px;
+            width: auto;
             margin: 5px 0;
-            border-radius: 3px;
-            border-right: 4px solid #667eea;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; color: #667eea;">🧪 اختبار تكامل Google Sheets</h1>
-    
-    <div class="test-container">
-        <div class="info-box">
-            <strong>📋 تعليمات الاختبار:</strong><br>
-            1. تأكد من إعداد Google Apps Script حسب الدليل<br>
-            2. حدث رابط GOOGLE_SHEETS_URL في script.js<br>
-            3. استخدم النماذج أدناه لاختبار النظام<br>
-            4. تحقق من Google Sheets للتأكد من وصول البيانات
+    <div class="container">
+        <h1>🧪 اختبار Google Sheets Integration</h1>
+        
+        <div class="test-section">
+            <h3>📝 الخطوة 1: إدخال رابط Google Apps Script</h3>
+            <input type="url" id="sheetsUrl" class="url-input" 
+                   placeholder="https://script.google.com/macros/s/.../exec">
+            <button onclick="saveUrl()">💾 حفظ الرابط</button>
+            <div id="urlStatus"></div>
         </div>
         
-        <h2 class="section-title">📧 اختبار نموذج التواصل</h2>
-        <form id="testContactForm" class="test-form">
-            <div class="form-group">
-                <label for="testName">الاسم:</label>
-                <input type="text" id="testName" name="name" value="أحمد محمد" required>
+        <div class="test-section">
+            <h3>🔍 الخطوة 2: اختبار الاتصال</h3>
+            <button onclick="testFullConnection()">🧪 اختبار شامل (POST + GET)</button>
+            <button onclick="testPostOnly()">📤 اختبار الإرسال فقط (POST)</button>
+            <button onclick="testGetOnly()">📥 اختبار الاستقبال فقط (GET)</button>
+            <div id="testResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 الخطوة 3: إرسال بيانات تجريبية</h3>
+            <button onclick="sendTestContact()">👤 إرسال جهة اتصال تجريبية</button>
+            <button onclick="sendTestOrder()">🛒 إرسال طلب تجريبي</button>
+            <button onclick="sendCompleteTestOrder()">📋 إرسال طلب كامل تجريبي</button>
+            <div id="sendResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 الخطوة 4: قراءة البيانات</h3>
+            <button onclick="readAllOrders()">📖 قراءة جميع الطلبات</button>
+            <button onclick="readContacts()">📧 قراءة جهات الاتصال</button>
+            <div id="readResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 كود Google Apps Script المطلوب</h3>
+            <p>إذا فشل اختبار GET، انسخ هذا الكود لـ Google Apps Script:</p>
+            <button class="copy-btn" onclick="copyScript()">📋 نسخ الكود</button>
+            <div class="code-block" id="scriptCode">
+// Enhanced Google Apps Script for Forsa Database
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    
+    switch(action) {
+      case 'getCompleteOrders':
+        return getCompleteOrders(spreadsheet);
+      default:
+        return ContentService.createTextOutput(JSON.stringify({
+          status: 'error',
+          message: 'Unknown action: ' + action
+        })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getCompleteOrders(spreadsheet) {
+  const sheet = spreadsheet.getSheetByName('Complete Orders');
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      data: []
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  const data = sheet.getDataRange().getValues();
+  const orders = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[1]) {
+      orders.push({
+        orderId: row[1],
+        customerName: row[2],
+        customerPhone: row[3],
+        totalAmount: row[11] || 0
+      });
+    }
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    data: orders
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Your existing doPost function should remain here...
             </div>
-            
-            <div class="form-group">
-                <label for="testEmail">البريد الإلكتروني:</label>
-                <input type="email" id="testEmail" name="email" value="ahmed@example.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="testMessage">الرسالة:</label>
-                <textarea id="testMessage" name="message" rows="4" required>مرحباً، هذه رسالة تجريبية لاختبار تكامل Google Sheets مع موقع Forsa.</textarea>
-            </div>
-            
-            <button type="submit">إرسال رسالة تجريبية</button>
-        </form>
-        
-        <div id="contactStatus" class="status"></div>
-    </div>
-    
-    <div class="test-container">
-        <h2 class="section-title">🛍️ اختبار الطلب السريع</h2>
-        <div class="test-form">
-            <button onclick="testQuickOrder()">طلب سريع تجريبي</button>
-        </div>
-        
-        <div id="orderStatus" class="status"></div>
-    </div>
-    
-    <div class="test-container">
-        <h2 class="section-title">🔄 إدارة البيانات المحلية</h2>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="showLocalData()">عرض البيانات المحلية</button>
-            <button onclick="syncLocalData()">مزامنة البيانات</button>
-            <button onclick="clearLocalData()">مسح البيانات المحلية</button>
-        </div>
-        
-        <div id="localDataDisplay" class="local-data" style="display: none;">
-            <h3>البيانات المحلية:</h3>
-            <div id="localDataContent"></div>
-        </div>
-    </div>
-    
-    <div class="test-container">
-        <h2 class="section-title">📊 معلومات النظام</h2>
-        <div class="info-box">
-            <strong>حالة Google Sheets URL:</strong> <span id="sheetsUrlStatus">لم يتم الفحص</span><br>
-            <strong>إجمالي الرسائل المحلية:</strong> <span id="localContactsCount">0</span><br>
-            <strong>إجمالي الطلبات المحلية:</strong> <span id="localOrdersCount">0</span><br>
-            <strong>البيانات غير المزامنة:</strong> <span id="unsyncedCount">0</span>
         </div>
     </div>
 
-    <!-- Include the main script -->
-    <script src="js/script.js"></script>
-    
     <script>
-        // Test contact form submission
-        document.getElementById('testContactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const statusDiv = document.getElementById('contactStatus');
-            const submitBtn = this.querySelector('button[type="submit"]');
-            
-            const formData = new FormData(this);
-            const name = formData.get('name');
-            const email = formData.get('email');
-            const message = formData.get('message');
-            
-            // Show loading
-            submitBtn.textContent = 'جاري الإرسال...';
-            submitBtn.disabled = true;
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status warning';
-            statusDiv.textContent = 'جاري معالجة الطلب...';
-            
-            try {
-                // Test the same function used in the main site
-                await saveContactToGoogleSheets(name, email, message);
-                
-                statusDiv.className = 'status success';
-                statusDiv.textContent = '✅ تم إرسال الرسالة وحفظها في Google Sheets بنجاح!';
-                
-                // Reset form
-                this.reset();
-                
-                // Update local data display
-                updateSystemInfo();
-                
-            } catch (error) {
-                console.error('Test error:', error);
-                
-                // Save locally as backup
-                saveContactLocally(name, email, message);
-                
-                statusDiv.className = 'status error';
-                statusDiv.textContent = '⚠️ فشل في الحفظ في Google Sheets، تم الحفظ محلياً كنسخة احتياطية.';
-                
-                updateSystemInfo();
-            } finally {
-                submitBtn.textContent = 'إرسال رسالة تجريبية';
-                submitBtn.disabled = false;
-            }
-        });
-        
-        // Test quick order
-        async function testQuickOrder() {
-            const statusDiv = document.getElementById('orderStatus');
-            const testProduct = {
-                name: 'شنطة يد أنيقة - اختبار',
-                price: '299 جنيه',
-                category: 'شنط يد'
-            };
-            
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'status warning';
-            statusDiv.textContent = 'جاري معالجة الطلب التجريبي...';
-            
-            try {
-                await saveQuickOrderToGoogleSheets(testProduct.name, testProduct.price, testProduct.category);
-                
-                statusDiv.className = 'status success';
-                statusDiv.textContent = '✅ تم إرسال الطلب وحفظه في Google Sheets بنجاح!';
-                
-                updateSystemInfo();
-                
-            } catch (error) {
-                console.error('Test order error:', error);
-                
-                saveOrderLocally(testProduct.name, testProduct.price, testProduct.category);
-                
-                statusDiv.className = 'status error';
-                statusDiv.textContent = '⚠️ فشل في الحفظ في Google Sheets، تم الحفظ محلياً كنسخة احتياطية.';
-                
-                updateSystemInfo();
-            }
-        }
-        
-        // Show local data
-        function showLocalData() {
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const display = document.getElementById('localDataDisplay');
-            const content = document.getElementById('localDataContent');
-            
-            let html = '';
-            
-            if (contacts.length > 0) {
-                html += '<h4>الرسائل:</h4>';
-                contacts.forEach(contact => {
-                    html += `
-                        <div class="data-item">
-                            <strong>${contact.name}</strong> - ${contact.email}<br>
-                            <small>${new Date(contact.timestamp).toLocaleString('ar-EG')} | ${contact.synced ? 'مزامن' : 'غير مزامن'}</small>
-                        </div>
-                    `;
-                });
-            }
-            
-            if (orders.length > 0) {
-                html += '<h4>الطلبات:</h4>';
-                orders.forEach(order => {
-                    html += `
-                        <div class="data-item">
-                            <strong>${order.productName}</strong> - ${order.productPrice}<br>
-                            <small>${new Date(order.timestamp).toLocaleString('ar-EG')} | ${order.synced ? 'مزامن' : 'غير مزامن'}</small>
-                        </div>
-                    `;
-                });
-            }
-            
-            if (html === '') {
-                html = '<p>لا توجد بيانات محلية.</p>';
-            }
-            
-            content.innerHTML = html;
-            display.style.display = 'block';
-        }
-        
-        // Sync local data
-        function syncLocalData() {
-            if (typeof syncLocalDataToGoogleSheets === 'function') {
-                syncLocalDataToGoogleSheets();
-                alert('تم بدء عملية المزامنة. تحقق من وحدة التحكم للتفاصيل.');
-                setTimeout(updateSystemInfo, 2000);
-            } else {
-                alert('دالة المزامنة غير متوفرة.');
-            }
-        }
-        
-        // Clear local data
-        function clearLocalData() {
-            if (confirm('هل أنت متأكد من حذف جميع البيانات المحلية؟')) {
-                localStorage.removeItem('forsa_contacts');
-                localStorage.removeItem('forsa_orders');
-                updateSystemInfo();
-                document.getElementById('localDataDisplay').style.display = 'none';
-                alert('تم حذف البيانات المحلية.');
-            }
-        }
-        
-        // Update system information
-        function updateSystemInfo() {
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const unsynced = [...contacts, ...orders].filter(item => !item.synced).length;
-            
-            document.getElementById('localContactsCount').textContent = contacts.length;
-            document.getElementById('localOrdersCount').textContent = orders.length;
-            document.getElementById('unsyncedCount').textContent = unsynced;
-            
-            // Check Google Sheets URL
-            const urlStatus = document.getElementById('sheetsUrlStatus');
-            if (typeof GOOGLE_SHEETS_URL !== 'undefined' && GOOGLE_SHEETS_URL.includes('YOUR_SCRIPT_ID')) {
-                urlStatus.textContent = '❌ لم يتم تحديث الرابط';
-                urlStatus.style.color = 'red';
-            } else if (typeof GOOGLE_SHEETS_URL !== 'undefined') {
-                urlStatus.textContent = '✅ تم تكوين الرابط';
-                urlStatus.style.color = 'green';
-            } else {
-                urlStatus.textContent = '❌ غير محدد';
-                urlStatus.style.color = 'red';
-            }
-        }
-        
-        // Initialize on page load
+        let currentUrl = '';
+
         document.addEventListener('DOMContentLoaded', function() {
-            updateSystemInfo();
-            
-            // Auto-update every 10 seconds
-            setInterval(updateSystemInfo, 10000);
+            // Load saved URL
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                document.getElementById('sheetsUrl').value = savedUrl;
+                currentUrl = savedUrl;
+            }
         });
+
+        function saveUrl() {
+            const urlInput = document.getElementById('sheetsUrl');
+            const url = urlInput.value.trim();
+            const statusDiv = document.getElementById('urlStatus');
+            
+            if (!url) {
+                statusDiv.innerHTML = '<div class="status error">❌ يرجى إدخال رابط صحيح</div>';
+                return;
+            }
+            
+            if (!url.includes('script.google.com')) {
+                statusDiv.innerHTML = '<div class="status warning">⚠️ تأكد من أن الرابط من Google Apps Script</div>';
+                return;
+            }
+            
+            localStorage.setItem('forsa_google_sheets_url', url);
+            currentUrl = url;
+            statusDiv.innerHTML = '<div class="status success">✅ تم حفظ الرابط بنجاح</div>';
+        }
+
+        async function testFullConnection() {
+            if (!currentUrl) {
+                showResult('testResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            showResult('testResults', 'info', '⏳ جاري إجراء الاختبار الشامل...');
+            
+            let results = '<h4>📊 نتائج الاختبار الشامل:</h4>';
+            
+            // Test POST
+            try {
+                const postData = {
+                    action: 'saveContact',
+                    name: 'اختبار اتصال - ' + new Date().toLocaleTimeString(),
+                    email: 'test@forsa.com',
+                    message: 'اختبار من صفحة Test Google Sheets'
+                };
+                
+                await fetch(currentUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+                
+                results += '<div class="status success">✅ POST (الكتابة): نجح</div>';
+            } catch (error) {
+                results += '<div class="status error">❌ POST فشل: ' + error.message + '</div>';
+            }
+            
+            // Test GET
+            try {
+                const getUrl = currentUrl + '?action=getCompleteOrders&test=1';
+                const response = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results += '<div class="status success">✅ GET (القراءة): نجح - ' + (data.data ? data.data.length : 0) + ' طلبات</div>';
+                } else {
+                    results += '<div class="status error">❌ GET فشل: HTTP ' + response.status + '</div>';
+                }
+            } catch (error) {
+                results += '<div class="status error">❌ GET فشل: ' + error.message + '</div>';
+                results += '<div class="status warning">💡 يحتاج إضافة دالة doGet في Google Apps Script</div>';
+            }
+            
+            document.getElementById('testResults').innerHTML = results;
+        }
+
+        async function testPostOnly() {
+            if (!currentUrl) {
+                showResult('testResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const testData = {
+                    action: 'saveContact',
+                    name: 'اختبار POST - ' + new Date().toLocaleTimeString(),
+                    email: 'post-test@forsa.com',
+                    message: 'اختبار الإرسال فقط'
+                };
+                
+                await fetch(currentUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                showResult('testResults', 'success', '✅ اختبار POST نجح - تم إرسال البيانات');
+            } catch (error) {
+                showResult('testResults', 'error', '❌ اختبار POST فشل: ' + error.message);
+            }
+        }
+
+        async function testGetOnly() {
+            if (!currentUrl) {
+                showResult('testResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const getUrl = currentUrl + '?action=getCompleteOrders&test=1';
+                const response = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('testResults', 'success', '✅ اختبار GET نجح - عدد الطلبات: ' + (data.data ? data.data.length : 0));
+                } else {
+                    showResult('testResults', 'error', '❌ اختبار GET فشل: HTTP ' + response.status);
+                }
+            } catch (error) {
+                showResult('testResults', 'error', '❌ اختبار GET فشل: ' + error.message);
+            }
+        }
+
+        async function sendTestContact() {
+            if (!currentUrl) {
+                showResult('sendResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const contactData = {
+                    action: 'saveContact',
+                    name: 'عميلة تجريبية',
+                    email: 'customer@example.com',
+                    message: 'رسالة تجريبية من صفحة الاختبار - ' + new Date().toLocaleString('ar-EG')
+                };
+                
+                await fetch(currentUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contactData)
+                });
+                
+                showResult('sendResults', 'success', '✅ تم إرسال جهة الاتصال التجريبية');
+            } catch (error) {
+                showResult('sendResults', 'error', '❌ فشل إرسال جهة الاتصال: ' + error.message);
+            }
+        }
+
+        async function sendTestOrder() {
+            if (!currentUrl) {
+                showResult('sendResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const orderData = {
+                    action: 'saveOrder',
+                    productName: 'حقيبة يد تجريبية',
+                    productPrice: '500 جنيه',
+                    productCategory: 'حقائب يد',
+                    orderType: 'quick_order'
+                };
+                
+                await fetch(currentUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                showResult('sendResults', 'success', '✅ تم إرسال الطلب التجريبي');
+            } catch (error) {
+                showResult('sendResults', 'error', '❌ فشل إرسال الطلب: ' + error.message);
+            }
+        }
+
+        async function sendCompleteTestOrder() {
+            if (!currentUrl) {
+                showResult('sendResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const completeOrderData = {
+                    action: 'saveCompleteOrder',
+                    orderId: 'TEST-' + Date.now(),
+                    customerName: 'عميلة اختبار',
+                    customerPhone: '01012345678',
+                    customerEmail: 'test@example.com',
+                    customerCity: 'القاهرة',
+                    customerAddress: 'شارع التجربة',
+                    paymentMethod: 'cash_on_delivery',
+                    customerNotes: 'طلب تجريبي',
+                    products: JSON.stringify([
+                        { name: 'حقيبة اختبار', category: 'حقائب يد', price: 750, quantity: 1 }
+                    ]),
+                    totalItems: 1,
+                    totalAmount: 750
+                };
+                
+                await fetch(currentUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(completeOrderData)
+                });
+                
+                showResult('sendResults', 'success', '✅ تم إرسال الطلب الكامل التجريبي');
+            } catch (error) {
+                showResult('sendResults', 'error', '❌ فشل إرسال الطلب الكامل: ' + error.message);
+            }
+        }
+
+        async function readAllOrders() {
+            if (!currentUrl) {
+                showResult('readResults', 'error', '❌ يرجى حفظ الرابط أولاً');
+                return;
+            }
+            
+            try {
+                const getUrl = currentUrl + '?action=getCompleteOrders';
+                const response = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const orders = data.data || [];
+                    
+                    let result = `<div class="status success">✅ تم قراءة ${orders.length} طلب</div>`;
+                    
+                    if (orders.length > 0) {
+                        result += '<div class="status info">آخر 3 طلبات:</div>';
+                        orders.slice(-3).forEach((order, index) => {
+                            result += `<div class="status info">${index + 1}. ${order.orderId}: ${order.customerName} - ${order.totalAmount} جنيه</div>`;
+                        });
+                    }
+                    
+                    showResult('readResults', '', result);
+                } else {
+                    showResult('readResults', 'error', '❌ فشل قراءة الطلبات: HTTP ' + response.status);
+                }
+            } catch (error) {
+                showResult('readResults', 'error', '❌ فشل قراءة الطلبات: ' + error.message);
+            }
+        }
+
+        function readContacts() {
+            showResult('readResults', 'warning', '💡 قراءة جهات الاتصال تحتاج تطوير إضافي في Google Apps Script');
+        }
+
+        function copyScript() {
+            const scriptCode = document.getElementById('scriptCode').textContent;
+            navigator.clipboard.writeText(scriptCode).then(function() {
+                alert('✅ تم نسخ الكود! الصقه في Google Apps Script');
+            });
+        }
+
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            const className = type ? `status ${type}` : '';
+            element.innerHTML = `<div class="${className}">${message}</div>`;
+        }
     </script>
 </body>
 </html>

@@ -82,4 +82,83 @@
                 return;
             }
             
-            resultsDiv.innerHTML = '<div class="status warning">⏳ جاري إجراء الاختبارات...</div>';\n            \n            let testResults = '<h3>📊 نتائج الاختبار:</h3>';\n            \n            // Test 1: POST (Write) - Should work\n            try {\n                console.log('Testing POST...');\n                const postData = {\n                    action: 'saveContact',\n                    name: 'اختبار ' + new Date().toLocaleTimeString(),\n                    email: 'test@example.com',\n                    message: 'رسالة اختبار من الاختبار السريع',\n                    source: 'quick_test'\n                };\n                \n                await fetch(gsUrl, {\n                    method: 'POST',\n                    mode: 'no-cors',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify(postData)\n                });\n                \n                testResults += '<div class=\"status success\">✅ POST (كتابة البيانات): نجح</div>';\n            } catch (error) {\n                testResults += '<div class=\"status error\">❌ POST (كتابة البيانات): فشل - ' + error.message + '</div>';\n            }\n            \n            // Test 2: GET (Read) - May fail if doGet not implemented\n            try {\n                console.log('Testing GET...');\n                const getUrl = gsUrl + '?action=getCompleteOrders&timestamp=' + Date.now();\n                \n                const response = await fetch(getUrl, {\n                    method: 'GET',\n                    headers: { 'Accept': 'application/json' }\n                });\n                \n                if (response.ok) {\n                    const data = await response.json();\n                    testResults += '<div class=\"status success\">✅ GET (قراءة البيانات): نجح - ' + (data.data ? data.data.length : 0) + ' طلبات موجودة</div>';\n                } else {\n                    testResults += '<div class=\"status error\">❌ GET (قراءة البيانات): فشل - HTTP ' + response.status + '</div>';\n                }\n            } catch (error) {\n                testResults += '<div class=\"status error\">❌ GET (قراءة البيانات): فشل - ' + error.message + '</div>';\n            }\n            \n            // Diagnosis\n            testResults += '<h3>🔧 التشخيص:</h3>';\n            testResults += '<div class=\"status warning\">';\n            testResults += '<p><strong>إذا كان POST ينجح و GET يفشل:</strong></p>';\n            testResults += '<ul>';\n            testResults += '<li>Google Apps Script يحتاج تحديث بالكود الجديد</li>';\n            testResults += '<li>يجب إضافة دالة doGet للقراءة</li>';\n            testResults += '<li>افتح الدليل: update-google-apps-script-guide.html</li>';\n            testResults += '</ul>';\n            testResults += '</div>';\n            \n            testResults += '<div class=\"status success\">';\n            testResults += '<p><strong>إذا كان POST و GET ينجحان:</strong></p>';\n            testResults += '<ul>';\n            testResults += '<li>النظام يعمل بشكل صحيح! ✅</li>';\n            testResults += '<li>الطلبات من التلفونات التانية المفروض تظهر</li>';\n            testResults += '<li>جرب \"تحديث من جميع المصادر\" في لوحة الإدارة</li>';\n            testResults += '</ul>';\n            testResults += '</div>';\n            \n            resultsDiv.innerHTML = testResults;\n        }\n        \n        // Load saved URL if exists\n        document.addEventListener('DOMContentLoaded', function() {\n            const savedUrl = localStorage.getItem('forsa_google_sheets_url');\n            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {\n                document.getElementById('gsUrl').value = savedUrl;\n            }\n        });\n    </script>\n</body>\n</html>
+            resultsDiv.innerHTML = '<div class="status warning">⏳ جاري إجراء الاختبارات...</div>';
+            
+            let testResults = '<h3>📊 نتائج الاختبار:</h3>';
+            
+            // Test 1: POST (Write) - Should work
+            try {
+                console.log('Testing POST...');
+                const postData = {
+                    action: 'saveContact',
+                    name: 'اختبار ' + new Date().toLocaleTimeString(),
+                    email: 'test@example.com',
+                    message: 'رسالة اختبار من الاختبار السريع',
+                    source: 'quick_test'
+                };
+                
+                await fetch(gsUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+                
+                testResults += '<div class="status success">✅ POST (كتابة البيانات): نجح</div>';
+            } catch (error) {
+                testResults += '<div class="status error">❌ POST (كتابة البيانات): فشل - ' + error.message + '</div>';
+            }
+            
+            // Test 2: GET (Read) - May fail if doGet not implemented
+            try {
+                console.log('Testing GET...');
+                const getUrl = gsUrl + '?action=getCompleteOrders&timestamp=' + Date.now();
+                
+                const response = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    testResults += '<div class="status success">✅ GET (قراءة البيانات): نجح - ' + (data.data ? data.data.length : 0) + ' طلبات موجودة</div>';
+                } else {
+                    testResults += '<div class="status error">❌ GET (قراءة البيانات): فشل - HTTP ' + response.status + '</div>';
+                }
+            } catch (error) {
+                testResults += '<div class="status error">❌ GET (قراءة البيانات): فشل - ' + error.message + '</div>';
+            }
+            
+            // Diagnosis
+            testResults += '<h3>🔧 التشخيص:</h3>';
+            testResults += '<div class="status warning">';
+            testResults += '<p><strong>إذا كان POST ينجح و GET يفشل:</strong></p>';
+            testResults += '<ul>';
+            testResults += '<li>Google Apps Script يحتاج تحديث بالكود الجديد</li>';
+            testResults += '<li>يجب إضافة دالة doGet للقراءة</li>';
+            testResults += '<li>افتح الدليل: update-google-apps-script-guide.html</li>';
+            testResults += '</ul>';
+            testResults += '</div>';
+            
+            testResults += '<div class="status success">';
+            testResults += '<p><strong>إذا كان POST و GET ينجحان:</strong></p>';
+            testResults += '<ul>';
+            testResults += '<li>النظام يعمل بشكل صحيح! ✅</li>';
+            testResults += '<li>الطلبات من التلفونات التانية المفروض تظهر</li>';
+            testResults += '<li>جرب "تحديث من جميع المصادر" في لوحة الإدارة</li>';
+            testResults += '</ul>';
+            testResults += '</div>';
+            
+            resultsDiv.innerHTML = testResults;
+        }
+        
+        // Load saved URL if exists
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                document.getElementById('gsUrl').value = savedUrl;
+            }
+        });
+    </script>
+</body>
+</html>

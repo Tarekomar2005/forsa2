@@ -5,19 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة إدارة البيانات المحلية - Forsa</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -26,28 +20,43 @@
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
-
         .header {
             text-align: center;
             margin-bottom: 40px;
         }
-
         .header h1 {
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-
+        .connection-status {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .connection-status.connected {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .connection-status.disconnected {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
-
         .stat-card {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -56,19 +65,8 @@
             text-align: center;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #eee;
-            margin-bottom: 30px;
-        }
-
+        .stat-number { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 30px; }
         .tab {
             padding: 15px 30px;
             background: none;
@@ -78,56 +76,25 @@
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
         }
-
-        .tab.active {
-            border-bottom-color: #667eea;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
+        .tab.active { border-bottom-color: #667eea; color: #667eea; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .table-container {
             overflow-x: auto;
             background: white;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: right;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: bold;
-            color: #333;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: bold; color: #333; }
+        tr:hover { background: #f8f9fa; }
         .actions {
             margin-bottom: 30px;
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
         }
-
         .btn {
             padding: 12px 25px;
             border: none;
@@ -139,44 +106,13 @@
             align-items: center;
             gap: 8px;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #f44336, #da190b);
-            color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state i {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-success { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #f44336, #da190b); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #ff9800, #f57c00); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .empty-state { text-align: center; padding: 60px 20px; color: #666; }
+        .empty-state i { font-size: 4em; margin-bottom: 20px; opacity: 0.3; }
         .sync-status {
             display: inline-block;
             padding: 4px 8px;
@@ -184,1231 +120,244 @@
             font-size: 12px;
             font-weight: bold;
         }
-
-        .synced {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .unsynced {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-                margin: 10px;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                justify-content: center;
-            }
-        }
+        .synced { background: #d4edda; color: #155724; }
+        .unsynced { background: #f8d7da; color: #721c24; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-database"></i> لوحة إدارة البيانات المحلية</h1>
-            <p>إدارة ومراقبة البيانات من جميع المصادر</p>
-            <div id="googleSheetsStatus" style="margin-top: 10px; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;">
-                <i class="fas fa-circle" id="statusIcon"></i>
-                <span id="statusText">جاري التحقق...</span>
+            <h1>📊 لوحة إدارة البيانات - Forsa</h1>
+            <p>إدارة وعرض جميع طلبات ورسائل العملاء</p>
+            <div class="connection-status" id="connectionStatus">
+                🟡 جاري فحص الاتصال مع Google Sheets...
             </div>
         </div>
 
-        <div class="stats">
+        <div class="stats" id="statsContainer">
             <div class="stat-card">
-                <div class="stat-number" id="contactsCount">0</div>
-                <div>رسائل التواصل</div>
+                <div class="stat-number" id="totalContacts">0</div>
+                <div>إجمالي الرسائل</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="ordersCount">0</div>
-                <div>إجمالي الطلبات</div>
+                <div class="stat-number" id="totalQuickOrders">0</div>
+                <div>الطلبات السريعة</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="localOrdersCount">0</div>
-                <div>🏠 طلبات محلية</div>
+                <div class="stat-number" id="totalCompleteOrders">0</div>
+                <div>الطلبات الكاملة</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="externalOrdersCount">0</div>
-                <div>📱 طلبات خارجية</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="syncedCount">0</div>
-                <div>☁️ مزامنة</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="unsyncedCount">0</div>
-                <div>⚠️ غير مزامنة</div>
+                <div class="stat-number" id="totalRevenue">0</div>
+                <div>إجمالي المبيعات (جنيه)</div>
             </div>
         </div>
 
         <div class="actions">
-            <button class="btn btn-primary" onclick="syncData()">
-                <i class="fas fa-sync"></i> مزامنة البيانات
+            <button class="btn btn-success" onclick="refreshAllData()">
+                <i class="fas fa-sync-alt"></i> تحديث من جميع المصادر
             </button>
-            <button class="btn btn-success" onclick="exportData()">
-                <i class="fas fa-download"></i> تصدير البيانات
-            </button>
-            <button class="btn btn-warning" onclick="refreshData()">
-                <i class="fas fa-refresh"></i> تحديث من جميع المصادر
-            </button>
-            <button class="btn btn-primary" onclick="debugLocalStorage()" style="background: #17a2b8;">
-                <i class="fas fa-bug"></i> فحص البيانات
-            </button>
-            <button class="btn btn-success" onclick="createTestOrder()" style="background: #28a745;">
-                <i class="fas fa-plus"></i> إضافة طلب تجريبي
-            </button>
-            <button class="btn btn-primary" onclick="configureGoogleSheets()" style="background: #6f42c1;">
-                <i class="fas fa-cog"></i> إعداد Google Sheets
-            </button>
-            <button class="btn btn-success" onclick="testGoogleSheetsConnection()" style="background: #17a2b8;">
-                <i class="fas fa-wifi"></i> اختبار الاتصال
-            </button>
-            <button class="btn btn-warning" onclick="simulateOrderFromOtherDevice()" style="background: #fd7e14;">
-                <i class="fas fa-mobile-alt"></i> محاكاة طلب من جهاز آخر
-            </button>
-            <button class="btn btn-info" onclick="forceCreateExternalOrder()" style="background: #6c757d;">
-                <i class="fas fa-plus-circle"></i> عمل طلب وهمي من جهاز تاني
-            </button>
-            <button class="btn btn-danger" onclick="clearAllData()">
-                <i class="fas fa-trash"></i> مسح جميع البيانات
+            <button class="btn btn-primary" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> تصدير Excel
             </button>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('contacts')">
-                <i class="fas fa-envelope"></i> رسائل التواصل
-            </button>
-            <button class="tab" onclick="showTab('orders')">
-                <i class="fas fa-shopping-cart"></i> الطلبات السريعة
-            </button>
-            <button class="tab" onclick="showTab('complete-orders')">
-                <i class="fas fa-shopping-bag"></i> الطلبات الكاملة
-            </button>
+            <button class="tab active" onclick="showTab('contacts')">رسائل التواصل</button>
+            <button class="tab" onclick="showTab('quickOrders')">الطلبات السريعة</button>
+            <button class="tab" onclick="showTab('completeOrders')">الطلبات الكاملة</button>
         </div>
 
-        <div id="contacts-tab" class="tab-content active">
+        <div id="contacts" class="tab-content active">
             <div class="table-container">
-                <table id="contactsTable">
+                <table>
                     <thead>
                         <tr>
                             <th>التاريخ</th>
                             <th>الاسم</th>
                             <th>البريد الإلكتروني</th>
                             <th>الرسالة</th>
-                            <th>حالة المزامنة</th>
-                            <th>الإجراءات</th>
+                            <th>المصدر</th>
                         </tr>
                     </thead>
-                    <tbody id="contactsBody">
-                    </tbody>
+                    <tbody id="contactsTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="orders-tab" class="tab-content">
+        <div id="quickOrders" class="tab-content">
             <div class="table-container">
-                <table id="ordersTable">
+                <table>
                     <thead>
                         <tr>
                             <th>التاريخ</th>
                             <th>اسم المنتج</th>
-                            <th>فئة المنتج</th>
                             <th>السعر</th>
-                            <th>حالة المزامنة</th>
-                            <th>الإجراءات</th>
+                            <th>الفئة</th>
+                            <th>المصدر</th>
                         </tr>
                     </thead>
-                    <tbody id="ordersBody">
-                    </tbody>
+                    <tbody id="quickOrdersTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="complete-orders-tab" class="tab-content">
+        <div id="completeOrders" class="tab-content">
             <div class="table-container">
-                <table id="completeOrdersTable">
+                <table>
                     <thead>
                         <tr>
-                            <th>رقم الطلب</th>
                             <th>التاريخ</th>
-                            <th>بيانات العميل</th>
-                            <th>عنوان التسليم</th>
-                            <th>المنتجات المختارة</th>
-                            <th>الإجمالي</th>
-                            <th>حالة المزامنة</th>
-                            <th>الإجراءات</th>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>الهاتف</th>
+                            <th>المنتجات</th>
+                            <th>المبلغ الإجمالي</th>
+                            <th>المصدر</th>
                         </tr>
                     </thead>
-                    <tbody id="completeOrdersBody">
-                    </tbody>
+                    <tbody id="completeOrdersTableBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Add Google Sheets URL configuration
-        let GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || 'PASTE_YOUR_WEB_APP_URL_HERE';
-        
-        // Load and display data from both local storage and Google Sheets
-        async function loadData() {
-            console.log('🔄 Loading data from both local storage and Google Sheets...');
-            
-            // Load local data
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+        let allData = { contacts: [], quickOrders: [], completeOrders: [] };
 
-            // Debug: Log the local data to console
-            console.log('📊 Local Data:');
-            console.log('Contacts:', contacts.length, contacts);
-            console.log('Orders:', orders.length, orders);
-            console.log('Complete Orders:', completeOrders.length, completeOrders);
-            
-            // Try to fetch additional data from Google Sheets
-            let googleSheetsOrders = [];
-            if (GOOGLE_SHEETS_URL && GOOGLE_SHEETS_URL !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                try {
-                    console.log('🌐 Attempting to fetch data from Google Sheets...');
-                    googleSheetsOrders = await fetchOrdersFromGoogleSheets();
-                    console.log('📊 Google Sheets Orders:', googleSheetsOrders.length, googleSheetsOrders);
-                } catch (error) {
-                    console.warn('⚠️ Could not fetch from Google Sheets:', error);
-                }
-            }
-            
-            // Merge local and Google Sheets data (avoid duplicates)
-            const allCompleteOrders = mergeOrderData(completeOrders, googleSheetsOrders);
-            console.log('📊 Merged Complete Orders:', allCompleteOrders.length, allCompleteOrders);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllLocalData();
+            updateStatistics();
+        });
 
-            updateStats(contacts, orders, allCompleteOrders);
-            displayContacts(contacts);
-            displayOrders(orders);
-            displayCompleteOrders(allCompleteOrders);
+        function loadAllLocalData() {
+            allData.contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            allData.quickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            allData.completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            displayCurrentTabData();
         }
 
-        // Fetch orders from Google Sheets using the new GET endpoint
-        async function fetchOrdersFromGoogleSheets() {
-            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                console.log('⚠️ Google Sheets URL not configured');
-                return [];
-            }
+        function updateStatistics() {
+            document.getElementById('totalContacts').textContent = allData.contacts.length;
+            document.getElementById('totalQuickOrders').textContent = allData.quickOrders.length;
+            document.getElementById('totalCompleteOrders').textContent = allData.completeOrders.length;
             
-            try {
-                console.log('🌐 Fetching orders from Google Sheets...');
-                
-                // Fetch data using GET request with action parameter
-                const fetchUrl = `${GOOGLE_SHEETS_URL}?action=getCompleteOrders&timestamp=${Date.now()}`;
-                console.log('Fetching from:', fetchUrl);
-                
-                const response = await fetch(fetchUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                console.log('📊 Google Sheets response:', result);
-                
-                if (result.status === 'success') {
-                    const orders = result.data || [];
-                    console.log(`✅ Successfully fetched ${orders.length} orders from Google Sheets`);
-                    return orders;
-                } else {
-                    console.error('❌ Google Sheets returned error:', result.message);
-                    return [];
-                }
-                
-            } catch (error) {
-                console.error('❌ Error fetching from Google Sheets:', error);
-                
-                // Check if it's a CORS error
-                if (error.message.includes('CORS') || error.message.includes('fetch')) {
-                    console.warn('⚠️ CORS error detected. This is normal with Google Apps Script. Orders are still being saved.');
-                    
-                    // Update local orders to show they are synced
-                    const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-                    const updatedOrders = localOrders.map(order => {
-                        if (!order.synced && order.source !== 'google_sheets') {
-                            return { ...order, synced: true };
-                        }
-                        return order;
-                    });
-                    localStorage.setItem('forsa_complete_orders', JSON.stringify(updatedOrders));
-                }
-                
-                return [];
-            }
-        }
-        
-        // Merge local and Google Sheets data, avoiding duplicates
-        function mergeOrderData(localOrders, googleSheetsOrders) {
-            const merged = [...localOrders];
-            const localOrderIds = new Set(localOrders.map(order => order.orderId));
-            
-            // Add Google Sheets orders that aren't already in local storage
-            googleSheetsOrders.forEach(order => {
-                if (!localOrderIds.has(order.orderId)) {
-                    merged.push({
-                        ...order,
-                        source: 'google_sheets',
-                        synced: true
-                    });
+            let totalRevenue = 0;
+            allData.completeOrders.forEach(order => {
+                if (order.totals && order.totals.totalAmount) {
+                    totalRevenue += parseFloat(order.totals.totalAmount) || 0;
+                } else if (order.totalAmount) {
+                    totalRevenue += parseFloat(order.totalAmount) || 0;
                 }
             });
-            
-            return merged;
-        }
-        
-        function updateStats(contacts, orders, completeOrders) {
-            const totalContacts = contacts.length;
-            const totalOrders = orders.length + completeOrders.length;
-            
-            // Count orders by source
-            let localOrdersCount = 0;
-            let externalOrdersCount = 0;
-            let syncedCount = 0;
-            let unsyncedCount = 0;
-            
-            completeOrders.forEach(order => {
-                // Count by source
-                if (order.source && (order.source.startsWith('external_') || order.source === 'google_sheets')) {
-                    externalOrdersCount++;
-                } else {
-                    localOrdersCount++;
-                }
-                
-                // Count by sync status
-                if (order.synced) {
-                    syncedCount++;
-                } else {
-                    unsyncedCount++;
-                }
-            });
-            
-            // Add contacts to sync counts
-            const unsyncedContacts = contacts.filter(c => !c.synced).length;
-            const syncedContacts = contacts.length - unsyncedContacts;
-            syncedCount += syncedContacts;
-            unsyncedCount += unsyncedContacts;
-            
-            // Update display
-            document.getElementById('contactsCount').textContent = totalContacts;
-            document.getElementById('ordersCount').textContent = totalOrders;
-            document.getElementById('localOrdersCount').textContent = localOrdersCount;
-            document.getElementById('externalOrdersCount').textContent = externalOrdersCount;
-            document.getElementById('syncedCount').textContent = syncedCount;
-            document.getElementById('unsyncedCount').textContent = unsyncedCount;
-            
-            // Log for debugging
-            console.log('📊 Stats Updated:');
-            console.log('Total Orders:', totalOrders);
-            console.log('🏠 Local Orders:', localOrdersCount);
-            console.log('📱 External Orders:', externalOrdersCount);
-            console.log('☁️ Synced:', syncedCount);
-            console.log('⚠️ Unsynced:', unsyncedCount);
+            document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString();
         }
 
-        function displayContacts(contacts) {
-            const tbody = document.getElementById('contactsBody');
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             
-            if (contacts.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <div>لا توجد رسائل محفوظة محلياً</div>
-                        </td>
-                    </tr>
-                `;
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            displayCurrentTabData();
+        }
+
+        function displayCurrentTabData() {
+            const activeTab = document.querySelector('.tab-content.active');
+            
+            if (activeTab.id === 'contacts') {
+                displayContacts();
+            } else if (activeTab.id === 'quickOrders') {
+                displayQuickOrders();
+            } else if (activeTab.id === 'completeOrders') {
+                displayCompleteOrders();
+            }
+        }
+
+        function displayContacts() {
+            const tbody = document.getElementById('contactsTableBody');
+            
+            if (allData.contacts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-envelope"></i><p>لا توجد رسائل تواصل</p></td></tr>';
                 return;
             }
-
-            tbody.innerHTML = contacts.map(contact => `
-                <tr>
-                    <td>${new Date(contact.timestamp).toLocaleString('ar-EG')}</td>
-                    <td>${contact.name}</td>
-                    <td>${contact.email}</td>
-                    <td title="${contact.message}">${contact.message.substring(0, 50)}${contact.message.length > 50 ? '...' : ''}</td>
-                    <td>
-                        <span class="sync-status ${contact.synced ? 'synced' : 'unsynced'}">
-                            ${contact.synced ? 'مزامنة' : 'غير مزامنة'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-danger" onclick="deleteContact(${contact.id})" style="padding: 5px 10px; font-size: 12px;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function displayOrders(orders) {
-            const tbody = document.getElementById('ordersBody');
             
-            if (orders.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <i class="fas fa-shopping-cart"></i>
-                            <div>لا توجد طلبات محفوظة محلياً</div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = orders.map(order => `
-                <tr>
-                    <td>${new Date(order.timestamp).toLocaleString('ar-EG')}</td>
-                    <td>${order.productName}</td>
-                    <td>${order.productCategory}</td>
-                    <td>${order.productPrice}</td>
-                    <td>
-                        <span class="sync-status ${order.synced ? 'synced' : 'unsynced'}">
-                            ${order.synced ? 'مزامنة' : 'غير مزامنة'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-danger" onclick="deleteOrder(${order.id})" style="padding: 5px 10px; font-size: 12px;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function displayCompleteOrders(completeOrders) {
-            const tbody = document.getElementById('completeOrdersBody');
-            
-            if (completeOrders.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="empty-state">
-                            <i class="fas fa-shopping-bag"></i>
-                            <div>لا توجد طلبات كاملة محفوظة محلياً</div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = completeOrders.map(order => {
-                const productsList = order.products.map(product => 
-                    `${product.name} (الكمية: ${product.quantity})`
-                ).join('، ');
-                
-                const productsPreview = productsList.length > 80 
-                    ? productsList.substring(0, 80) + '...' 
-                    : productsList;
-
+            tbody.innerHTML = allData.contacts.map(contact => {
+                const date = new Date(contact.timestamp || contact.date || Date.now());
                 return `
                     <tr>
-                        <td><strong>${order.orderId}</strong></td>
-                        <td>${new Date(order.timestamp).toLocaleString('ar-EG')}</td>
-                        <td>
-                            <div style="margin-bottom: 5px;"><strong>${order.customerName}</strong></div>
-                            <div style="font-size: 11px; color: #666;">${order.customerPhone}</div>
-                            ${order.customerEmail ? `<div style="font-size: 10px; color: #888;">${order.customerEmail}</div>` : ''}
-                            ${order.deviceInfo ? `<div style="font-size: 9px; color: #007bff; margin-top: 2px;"><i class="fas fa-mobile-alt"></i> ${order.deviceInfo}</div>` : ''}
-                        </td>
-                        <td>
-                            <div style="font-size: 11px; line-height: 1.3;">${order.customerAddress || 'غير محدد'}</div>
-                            <div style="font-size: 10px; color: #666;">${order.customerCity || ''}</div>
-                        </td>
-                        <td>
-                            <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 10px; font-size: 11px;">
-                                ${order.products.length} منتج
-                            </span>
-                            <div style="font-size: 10px; color: #666; margin-top: 2px;" title="${productsList}">
-                                ${productsPreview}
-                            </div>
-                        </td>
-                        <td><strong>${order.totalAmount} جنيه</strong></td>
-                        <td>
-                            <span class="sync-status ${order.synced ? 'synced' : 'unsynced'}">
-                                ${order.synced ? 'تم المزامنة' : 'غير مزامنة'}
-                            </span>
-                            <div style="font-size: 9px; margin-top: 2px; color: #666;">
-                                ${order.source === 'admin_test' ? '🧪 طلب تجريبي' : 
-                                  order.source && order.source.startsWith('external_device_') ? '📱 جهاز خارجي' :
-                                  order.synced ? '☁️ Google Sheets' : '📱 محلي'}
-                            </div>
-                        </td>
-                        <td>
-                            <button class="btn btn-primary" onclick="viewDetailedOrderInfo('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; margin-bottom: 3px; width: 100%;">
-                                <i class="fas fa-eye"></i> عرض التفاصيل
-                            </button>
-                            <button class="btn btn-success" onclick="showCustomerProductsModal('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; margin-bottom: 3px; width: 100%;">
-                                <i class="fas fa-list"></i> العميل والمنتجات
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteCompleteOrder('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; width: 100%;">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
-                        </td>
+                        <td>${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</td>
+                        <td>${contact.name}</td>
+                        <td>${contact.email}</td>
+                        <td>${contact.message}</td>
+                        <td>${contact.source || 'website'}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function viewDetailedOrderInfo(orderId) {
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-            const order = completeOrders.find(o => o.orderId === orderId);
+        function displayQuickOrders() {
+            const tbody = document.getElementById('quickOrdersTableBody');
             
-            if (!order) {
-                alert('لم يتم العثور على الطلب');
-                return;
-            }
-
-            const productsDetails = order.products.map(product => 
-                `• ${product.name}\n  الكمية: ${product.quantity}\n  السعر الأساسي: ${product.price}\n  الإجمالي: ${(parseFloat(product.price.replace(' جنيه', '')) * product.quantity).toFixed(2)} جنيه\n`
-            ).join('\n');
-
-            const orderDetails = `
-🛍️ تفاصيل الطلب رقم: ${order.orderId}
-📅 التاريخ: ${new Date(order.timestamp).toLocaleString('ar-EG')}
-
-👤 بيانات العميل:
-الاسم: ${order.customerName}
-الهاتف: ${order.customerPhone}
-البريد الإلكتروني: ${order.customerEmail || 'غير محدد'}
-العنوان: ${order.customerAddress || 'غير محدد'}
-
-🛒 المنتجات المختارة:
-${productsDetails}
-💰 الإجمالي النهائي: ${order.totalAmount} جنيه
-💳 طريقة الدفع: ${order.paymentMethod}
-
-📊 حالة المزامنة: ${order.synced ? 'تم المزامنة مع Google Sheets' : 'محفوظ محلياً فقط'}
-            `;
-
-            alert(orderDetails);
-        }
-
-        function showCustomerProductsModal(orderId) {
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-            const order = completeOrders.find(o => o.orderId === orderId);
-            
-            if (!order) {
-                alert('لم يتم العثور على الطلب');
-                return;
-            }
-
-            // Create modal HTML
-            const modalHTML = `
-                <div id="customerProductsModal" style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                    z-index: 10000;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                ">
-                    <div style="
-                        background: white;
-                        border-radius: 15px;
-                        max-width: 900px;
-                        width: 90%;
-                        max-height: 90%;
-                        overflow-y: auto;
-                        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-                    ">
-                        <div style="
-                            background: linear-gradient(135deg, #667eea, #764ba2);
-                            color: white;
-                            padding: 20px;
-                            border-radius: 15px 15px 0 0;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        ">
-                            <h2 style="margin: 0;">👤 بيانات العميل والمنتجات</h2>
-                            <button onclick="closeCustomerModal()" style="
-                                background: rgba(255,255,255,0.2);
-                                border: none;
-                                border-radius: 50%;
-                                width: 40px;
-                                height: 40px;
-                                color: white;
-                                cursor: pointer;
-                                font-size: 18px;
-                            ">×</button>
-                        </div>
-                        
-                        <div style="padding: 25px;">
-                            <!-- Customer Information -->
-                            <div style="
-                                background: #f8f9fa;
-                                border-radius: 12px;
-                                padding: 20px;
-                                margin-bottom: 25px;
-                                border-right: 4px solid #667eea;
-                            ">
-                                <h3 style="color: #333; margin-bottom: 15px; display: flex; align-items: center;">
-                                    <i class="fas fa-user" style="margin-left: 10px; color: #667eea;"></i>
-                                    بيانات العميل
-                                </h3>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                                    <div><strong>الاسم:</strong> ${order.customerName}</div>
-                                    <div><strong>رقم الهاتف:</strong> ${order.customerPhone}</div>
-                                    <div><strong>البريد الإلكتروني:</strong> ${order.customerEmail || 'غير محدد'}</div>
-                                    <div><strong>المدينة:</strong> ${order.customerCity || 'غير محدد'}</div>
-                                    <div style="grid-column: 1/-1;"><strong>عنوان التسليم:</strong> ${order.customerAddress || 'غير محدد'}</div>
-                                    <div><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'غير محدد'}</div>
-                                    <div><strong>تاريخ الطلب:</strong> ${new Date(order.timestamp).toLocaleString('ar-EG')}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Products List -->
-                            <div style="
-                                background: #fff8e1;
-                                border-radius: 12px;
-                                padding: 20px;
-                                border-right: 4px solid #ff9800;
-                            ">
-                                <h3 style="color: #333; margin-bottom: 15px; display: flex; align-items: center;">
-                                    <i class="fas fa-shopping-bag" style="margin-left: 10px; color: #ff9800;"></i>
-                                    المنتجات المختارة (${order.products.length} منتج)
-                                </h3>
-                                <div style="display: grid; gap: 15px;">
-                                    ${order.products.map((product, index) => `
-                                        <div style="
-                                            background: white;
-                                            border-radius: 8px;
-                                            padding: 15px;
-                                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                            display: grid;
-                                            grid-template-columns: auto 1fr auto auto;
-                                            gap: 15px;
-                                            align-items: center;
-                                        ">
-                                            <div style="
-                                                background: #e3f2fd;
-                                                border-radius: 50%;
-                                                width: 35px;
-                                                height: 35px;
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                font-weight: bold;
-                                                color: #1976d2;
-                                            ">${index + 1}</div>
-                                            <div>
-                                                <div style="font-weight: bold; margin-bottom: 5px;">${product.name}</div>
-                                                <div style="font-size: 12px; color: #666;">فئة: ${product.category || 'غير محدد'}</div>
-                                            </div>
-                                            <div style="text-align: center;">
-                                                <div style="font-size: 12px; color: #666;">الكمية</div>
-                                                <div style="font-weight: bold; font-size: 18px; color: #2196f3;">${product.quantity}</div>
-                                            </div>
-                                            <div style="text-align: left;">
-                                                <div style="font-size: 12px; color: #666;">السعر</div>
-                                                <div style="font-weight: bold; color: #4caf50;">${product.price}</div>
-                                                <div style="font-size: 11px; color: #666;">إجمالي: ${(parseFloat(product.price.replace(' جنيه', '')) * product.quantity).toFixed(2)} جنيه</div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                
-                                <!-- Order Summary -->
-                                <div style="
-                                    margin-top: 20px;
-                                    padding: 15px;
-                                    background: linear-gradient(135deg, #4caf50, #45a049);
-                                    color: white;
-                                    border-radius: 8px;
-                                    text-align: center;
-                                ">
-                                    <div style="font-size: 18px; font-weight: bold;">
-                                        💰 إجمالي الطلب: ${order.totalAmount} جنيه
-                                    </div>
-                                    <div style="font-size: 14px; margin-top: 5px;">
-                                        📦 عدد القطع: ${order.products.reduce((sum, p) => sum + parseInt(p.quantity), 0)}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Order Info -->
-                            <div style="
-                                margin-top: 25px;
-                                padding: 15px;
-                                background: #f3e5f5;
-                                border-radius: 8px;
-                                display: flex;
-                                justify-content: space-between;
-                                align-items: center;
-                            ">
-                                <div>
-                                    <strong>رقم الطلب:</strong> ${order.orderId}
-                                </div>
-                                <div>
-                                    <span class="sync-status ${order.synced ? 'synced' : 'unsynced'}">
-                                        ${order.synced ? 'تم المزامنة مع Google Sheets' : 'محفوظ محلياً فقط'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Add modal to page
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-
-        function closeCustomerModal() {
-            const modal = document.getElementById('customerProductsModal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-
-        function deleteCompleteOrder(orderId) {
-            if (confirm('هل أنت متأكد من حذف هذا الطلب الكامل؟')) {
-                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-                const updatedOrders = completeOrders.filter(order => order.orderId !== orderId);
-                localStorage.setItem('forsa_complete_orders', JSON.stringify(updatedOrders));
-                loadData();
-            }
-        }
-
-        function showTab(tabName) {
-            // Remove active class from all tabs and contents
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            // Add active class to selected tab and content
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
-        }
-
-        function syncData() {
-            // Sync local data to Google Sheets
-            syncLocalDataToGoogleSheets();
-        }
-        
-        // Sync local data to Google Sheets
-        async function syncLocalDataToGoogleSheets() {
-            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                alert('⚠️ يرجى إعداد رابط Google Sheets أولاً!');
+            if (allData.quickOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-shopping-cart"></i><p>لا توجد طلبات سريعة</p></td></tr>';
                 return;
             }
             
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-            
-            let synced = 0;
-            let failed = 0;
-            
-            console.log('🔄 Starting sync process...');
-            
-            // Sync unsynced contacts
-            for (const contact of contacts.filter(c => !c.synced)) {
-                try {
-                    await fetch(GOOGLE_SHEETS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'saveContact',
-                            name: contact.name,
-                            email: contact.email,
-                            message: contact.message,
-                            source: 'sync_from_admin'
-                        })
-                    });
-                    contact.synced = true;
-                    synced++;
-                } catch (error) {
-                    console.error('Failed to sync contact:', error);
-                    failed++;
-                }
-            }
-            
-            // Sync unsynced complete orders
-            for (const order of completeOrders.filter(o => !o.synced)) {
-                try {
-                    await fetch(GOOGLE_SHEETS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'saveCompleteOrder',
-                            orderId: order.orderId,
-                            customerName: order.customerName,
-                            customerPhone: order.customerPhone,
-                            customerEmail: order.customerEmail,
-                            customerCity: order.customerCity,
-                            customerAddress: order.customerAddress,
-                            paymentMethod: order.paymentMethod,
-                            customerNotes: order.customerNotes,
-                            products: JSON.stringify(order.products),
-                            totalItems: order.totalItems,
-                            totalAmount: order.totalAmount,
-                            source: 'sync_from_admin'
-                        })
-                    });
-                    order.synced = true;
-                    synced++;
-                } catch (error) {
-                    console.error('Failed to sync order:', error);
-                    failed++;
-                }
-            }
-            
-            // Update localStorage with sync status
-            localStorage.setItem('forsa_contacts', JSON.stringify(contacts));
-            localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
-            
-            alert(`✅ مزامنة مكتملة!\n\nتم مزامنة: ${synced}\nفشل في: ${failed}`);
-            console.log(`✅ Sync completed: ${synced} successful, ${failed} failed`);
-            
-            // Refresh data display
-            loadData();
+            tbody.innerHTML = allData.quickOrders.map(order => {
+                const date = new Date(order.timestamp || order.date || Date.now());
+                return `
+                    <tr>
+                        <td>${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</td>
+                        <td>${order.productName}</td>
+                        <td>${order.productPrice}</td>
+                        <td>${order.productCategory}</td>
+                        <td>${order.source || 'website'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function exportData() {
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-
-            const data = {
-                exportDate: new Date().toISOString(),
-                contacts: contacts,
-                orders: orders,
-                completeOrders: completeOrders,
-                summary: {
-                    totalContacts: contacts.length,
-                    totalQuickOrders: orders.length,
-                    totalCompleteOrders: completeOrders.length,
-                    unsyncedContacts: contacts.filter(c => !c.synced).length,
-                    unsyncedOrders: orders.filter(o => !o.synced).length,
-                    unsyncedCompleteOrders: completeOrders.filter(o => !o.synced).length
-                }
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `forsa-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function refreshData() {
-            console.log('🔄 Refreshing data from all sources...');
-            loadData();
-        }
-        
-        // Configure Google Sheets URL
-        function configureGoogleSheets() {
-            const currentUrl = localStorage.getItem('forsa_google_sheets_url') || 'PASTE_YOUR_WEB_APP_URL_HERE';
-            const newUrl = prompt('أدخل رابط Google Apps Script Web App URL:', currentUrl);
+        function displayCompleteOrders() {
+            const tbody = document.getElementById('completeOrdersTableBody');
             
-            if (newUrl && newUrl.trim() !== '') {
-                localStorage.setItem('forsa_google_sheets_url', newUrl.trim());
-                GOOGLE_SHEETS_URL = newUrl.trim();
-                updateGoogleSheetsStatus(); // Update status indicator
-                alert('✅ تم حفظ رابط Google Sheets بنجاح!\n\nسيتم الآن جلب البيانات من جميع الأجهزة.');
-                loadData(); // Refresh with new URL
-            }
-        }
-
-        function clearAllData() {
-            if (confirm('هل أنت متأكد من حذف جميع البيانات المحلية؟ هذا الإجراء لا يمكن التراجع عنه.')) {
-                localStorage.removeItem('forsa_contacts');
-                localStorage.removeItem('forsa_orders');
-                localStorage.removeItem('forsa_complete_orders');
-                loadData();
-                alert('تم حذف جميع البيانات المحلية.');
-            }
-        }
-
-        function deleteContact(id) {
-            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
-                const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-                const updatedContacts = contacts.filter(contact => contact.id !== id);
-                localStorage.setItem('forsa_contacts', JSON.stringify(updatedContacts));
-                loadData();
-            }
-        }
-
-        function deleteOrder(id) {
-            if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-                const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-                const updatedOrders = orders.filter(order => order.id !== id);
-                localStorage.setItem('forsa_orders', JSON.stringify(updatedOrders));
-                loadData();
-            }
-        }
-
-        function debugLocalStorage() {
-            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-            
-            let debugInfo = '🔍 فحص بيانات localStorage وإعدادات Google Sheets:\n\n';
-            
-            // Local storage info
-            debugInfo += '📱 البيانات المحلية (هذا الجهاز فقط):\n';
-            debugInfo += `📧 رسائل التواصل: ${contacts.length}\n`;
-            debugInfo += `🛒 الطلبات السريعة: ${orders.length}\n`;
-            debugInfo += `🛍️ الطلبات الكاملة: ${completeOrders.length}\n\n`;
-            
-            // Google Sheets info
-            debugInfo += '🌍 Google Sheets إعدادات:\n';
-            const gsUrl = localStorage.getItem('forsa_google_sheets_url');
-            if (gsUrl && gsUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                debugInfo += `✅ متصل: ${gsUrl.substring(0, 50)}...\n`;
-                debugInfo += '🔄 يتم جلب البيانات من جميع الأجهزة\n\n';
-            } else {
-                debugInfo += '⚠️ غير معد: يعرض البيانات المحلية فقط\n';
-                debugInfo += 'لعرض طلبات جميع الأجهزة، اضغط "إعداد Google Sheets"\n\n';
-            }
-            
-            if (completeOrders.length > 0) {
-                debugInfo += '📊 تفاصيل الطلبات الكاملة:\n';
-                
-                let localCount = 0;
-                let externalCount = 0;
-                
-                completeOrders.forEach((order, index) => {
-                    const isExternal = order.source && order.source.startsWith('external_device_');
-                    if (isExternal) externalCount++;
-                    else localCount++;
-                    
-                    debugInfo += `${index + 1}. ${order.orderId} - ${order.customerName} - ${order.totalAmount} جنيه\n`;
-                    debugInfo += `   عدد المنتجات: ${order.products ? order.products.length : 'غير محدد'}\n`;
-                    debugInfo += `   المصدر: ${isExternal ? '📱 جهاز خارجي (' + (order.deviceInfo || 'غير محدد') + ')' : order.source || 'محلي'}\n`;
-                });
-                
-                debugInfo += `\n📈 الإحصائيات:\n`;
-                debugInfo += `📱 طلبات محلية: ${localCount}\n`;
-                debugInfo += `🌍 طلبات من أجهزة أخرى: ${externalCount}\n`;
-            } else {
-                debugInfo += '⚠️ لا توجد طلبات كاملة محفوظة.\n';
-                debugInfo += 'لإضافة طلبات جديدة:\n';
-                debugInfo += '1. اذهب إلى الموقع الرئيسي\n';
-                debugInfo += '2. أضف منتجات للسلة\n';
-                debugInfo += '3. أدخل بيانات العميل\n';
-                debugInfo += '4. اضغط "إتمام الطلب"\n';
-            }
-            
-            debugInfo += '\n🔑 نصائح:\n';
-            debugInfo += '- اضغط "تحديث من جميع المصادر" لتحديث البيانات\n';
-            debugInfo += '- اضغط "محاكاة طلب من جهاز آخر" لاختبار عرض البيانات\n';
-            debugInfo += '- اضغط "إعداد Google Sheets" لربط قاعدة بيانات مشتركة\n';
-            
-            // Also log to console for detailed inspection
-            console.log('📊 فحص مفصّل:');
-            console.log('Contacts:', contacts);
-            console.log('Orders:', orders);
-            console.log('Complete Orders:', completeOrders);
-            console.log('Google Sheets URL:', gsUrl);
-            
-            alert(debugInfo);
-        }
-
-        function createTestOrder() {
-            if (confirm('هل تريد إضافة طلب تجريبي لاختبار عرض البيانات؟')) {
-                const testOrder = {
-                    id: Date.now(),
-                    orderId: 'ORD-' + Date.now(),
-                    timestamp: new Date().toISOString(),
-                    customerName: 'أحمد محمد - طلب تجريبي',
-                    customerPhone: '01234567890',
-                    customerEmail: 'ahmed@example.com',
-                    customerCity: 'القاهرة',
-                    customerAddress: 'شارع النيل، مصر الجديدة',
-                    paymentMethod: 'cash_on_delivery',
-                    customerNotes: 'طلب تجريبي لاختبار لوحة الإدارة',
-                    products: [
-                        {
-                            name: 'شنطة يد أنيقة',
-                            category: 'شنط يد',
-                            price: '299',
-                            quantity: 2,
-                            total: 598
-                        },
-                        {
-                            name: 'شنطة كتف عصرية',
-                            category: 'شنط كتف',
-                            price: '450',
-                            quantity: 1,
-                            total: 450
-                        }
-                    ],
-                    totalItems: 3,
-                    totalAmount: 1048,
-                    source: 'admin_test',
-                    synced: false
-                };
-                
-                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-                completeOrders.push(testOrder);
-                localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
-                
-                alert('✅ تم إضافة الطلب التجريبي بنجاح!');
-                loadData();
-            }
-        }
-
-        // Load data when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            updateGoogleSheetsStatus();
-            loadData();
-        });
-        
-        // Update Google Sheets connection status
-        // Force create a realistic external order (simulates what should come from Google Sheets)
-        function forceCreateExternalOrder() {
-            if (confirm('📱 هل تريد عمل طلب وهمي من تليفون تاني لاختبار العرض؟')) {
-                const externalOrder = {
-                    id: 'ext_' + Date.now(),
-                    orderId: 'PHONE-' + Math.floor(Math.random() * 10000),
-                    timestamp: new Date().toISOString(),
-                    customerName: 'عميلة من تليفون تاني',
-                    customerPhone: '012' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
-                    customerEmail: 'customer@phone.com',
-                    customerCity: 'القاهرة',
-                    customerAddress: 'شارع النيل - من تليفون آخر',
-                    paymentMethod: 'cash_on_delivery',
-                    customerNotes: 'طلب حقيقي من عميلة بتليفون تاني',
-                    products: [
-                        {
-                            name: 'حقيبة يد أنيقة',
-                            category: 'حقائب يد',
-                            price: '750',
-                            quantity: 1
-                        },
-                        {
-                            name: 'حقيبة كتف عصرية',
-                            category: 'حقائب كتف',
-                            price: '950',
-                            quantity: 2
-                        }
-                    ],
-                    totalItems: 3,
-                    totalAmount: 2650,
-                    source: 'external_phone_real',
-                    synced: true, // This came from Google Sheets
-                    deviceInfo: 'آيفون 12 - عميلة حقيقية',
-                    isRealExternal: true
-                };
-                
-                // Add to localStorage as if it came from Google Sheets
-                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-                completeOrders.push(externalOrder);
-                localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
-                
-                alert('✅ تم عمل طلب وهمي من تليفون تاني!\n\n📊 العميل: ' + externalOrder.customerName + '\n📱 الجهاز: ' + externalOrder.deviceInfo + '\n💰 الإجمالي: ' + externalOrder.totalAmount + ' جنيه\n\nهذا مثال على طلب حقيقي من تليفون آخر!');
-                
-                // Refresh the display
-                loadData();
-            }
-        }
-        
-        // Simulate an order from another device (for testing cross-device functionality)
-        function simulateOrderFromOtherDevice() {
-            if (confirm('📱 هل تريد محاكاة طلب من جهاز آخر لاختبار عرض البيانات عبر الأجهزة؟')) {
-                const deviceNames = ['آيفون 13', 'سامسونج جالاكسي', 'هواوي P50', 'شاومي', 'لاب توب'];
-                const customerNames = ['فاطمة أحمد', 'مريم محمد', 'نورهان علي', 'رهف حسن', 'ياسمين خالد'];
-                const cities = ['القاهرة', 'الجيزة', 'الإسكندرية', 'المنصورة', 'طنطا'];
-                
-                const randomDevice = deviceNames[Math.floor(Math.random() * deviceNames.length)];
-                const randomCustomer = customerNames[Math.floor(Math.random() * customerNames.length)];
-                const randomCity = cities[Math.floor(Math.random() * cities.length)];
-                
-                const simulatedOrder = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    orderId: 'EXT-' + Date.now(),
-                    timestamp: new Date(Date.now() - Math.floor(Math.random() * 24 * 60 * 60 * 1000)).toISOString(), // Random time within last 24 hours
-                    customerName: randomCustomer,
-                    customerPhone: '010' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
-                    customerEmail: randomCustomer.split(' ')[0].toLowerCase() + '@gmail.com',
-                    customerCity: randomCity,
-                    customerAddress: 'شارع النيل، ' + randomCity,
-                    paymentMethod: 'cash_on_delivery',
-                    customerNotes: 'طلب من ' + randomDevice + ' - بيانات محاكاة',
-                    products: [
-                        {
-                            name: 'حقيبة يد فاخرة',
-                            category: 'حقائب يد',
-                            price: '850',
-                            quantity: 1,
-                            total: 850
-                        },
-                        {
-                            name: 'حقيبة كتف عصرية',
-                            category: 'حقائب كتف',
-                            price: '650',
-                            quantity: Math.floor(Math.random() * 2) + 1,
-                            total: 650 * (Math.floor(Math.random() * 2) + 1)
-                        }
-                    ],
-                    totalItems: 2,
-                    totalAmount: 1500 + Math.floor(Math.random() * 500),
-                    source: 'external_device_' + randomDevice.replace(' ', '_'),
-                    synced: true, // This came from Google Sheets
-                    deviceInfo: randomDevice,
-                    isSimulated: true
-                };
-                
-                // Add to local storage as if it came from Google Sheets
-                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
-                completeOrders.push(simulatedOrder);
-                localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
-                
-                alert('✅ تم إضافة طلب محاكى من ' + randomDevice + '!\n\n📊 العميل: ' + randomCustomer + '\n📱 الجهاز: ' + randomDevice + '\n💰 الإجمالي: ' + simulatedOrder.totalAmount + ' جنيه');
-                
-                // Refresh the display
-                loadData();
-            }
-        }
-        
-        // Test Google Sheets connection
-        async function testGoogleSheetsConnection() {
-            const gsUrl = localStorage.getItem('forsa_google_sheets_url');
-            
-            if (!gsUrl || gsUrl === 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                alert('⚠️ يرجى إعداد رابط Google Sheets أولاً!');
+            if (allData.completeOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-clipboard-list"></i><p>لا توجد طلبات كاملة</p></td></tr>';
                 return;
             }
             
-            console.log('🗺️ Testing connection to:', gsUrl);
-            
-            // Test both writing (POST) and reading (GET)
-            let writeSuccess = false;
-            let readSuccess = false;
-            
-            try {
-                // Test 1: Write Test (POST)
-                console.log('📝 Testing write capability...');
-                const testData = {
-                    action: 'saveContact',
-                    name: 'اختبار الاتصال - ' + new Date().toLocaleTimeString('ar-EG'),
-                    email: 'test@forsa-admin.com',
-                    message: 'رسالة اختبار من لوحة الإدارة - ' + new Date().toISOString(),
-                    source: 'admin_panel_test'
-                };
+            tbody.innerHTML = allData.completeOrders.map(order => {
+                const date = new Date(order.timestamp || Date.now());
+                const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
+                const customerPhone = order.customer ? order.customer.phone : order.customerPhone || 'غير محدد';
+                const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                const productCount = order.products ? order.products.length : 'غير محدد';
                 
-                await fetch(gsUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(testData)
-                });
-                writeSuccess = true;
-                console.log('✅ Write test successful');
-                
-            } catch (writeError) {
-                console.error('❌ Write test failed:', writeError);
-            }
-            
-            try {
-                // Test 2: Read Test (GET)
-                console.log('📚 Testing read capability...');
-                const readUrl = `${gsUrl}?action=getCompleteOrders&timestamp=${Date.now()}`;
-                
-                const response = await fetch(readUrl, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('✅ Read test successful:', result);
-                    readSuccess = true;
-                    
-                    if (result.data && result.data.length > 0) {
-                        console.log(`📊 Found ${result.data.length} orders in Google Sheets`);
-                    }
-                } else {
-                    console.warn('⚠️ Read test returned non-OK status:', response.status);
-                }
-                
-            } catch (readError) {
-                console.error('❌ Read test failed:', readError);
-            }
-            
-            // Display results
-            let message = '🗺️ نتائج اختبار الاتصال:\n\n';
-            
-            if (writeSuccess && readSuccess) {
-                message += '✅ نجح الاختبار بالكامل!\n';
-                message += '• الكتابة إلى Google Sheets: ✅\n';
-                message += '• القراءة من Google Sheets: ✅\n\n';
-                message += '🔄 سيتم الآن تحديث البيانات من Google Sheets.';
-            } else if (writeSuccess && !readSuccess) {
-                message += '⚠️ اختبار جزئي ناجح:\n';
-                message += '• الكتابة إلى Google Sheets: ✅\n';
-                message += '• القراءة من Google Sheets: ❌\n\n';
-                message += '🔧 تحتاج لإعادة نشر Google Apps Script لتفعيل القراءة.';
-            } else {
-                message += '❌ فشل في الاختبار:\n';
-                message += 'تأكد من صحة رابط Google Sheets وإعدادات النشر.';
-            }
-            
-            alert(message);
-            
-            // Refresh the data regardless to show any updates
-            loadData();
-        }
-        
-        function updateGoogleSheetsStatus() {
-            const statusDiv = document.getElementById('googleSheetsStatus');
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-            const gsUrl = localStorage.getItem('forsa_google_sheets_url');
-            
-            if (gsUrl && gsUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                statusDiv.style.backgroundColor = '#d4edda';
-                statusDiv.style.color = '#155724';
-                statusDiv.style.border = '1px solid #c3e6cb';
-                statusIcon.style.color = '#28a745';
-                statusText.textContent = 'متصل بـ Google Sheets - يعرض بيانات جميع الأجهزة';
-            } else {
-                statusDiv.style.backgroundColor = '#fff3cd';
-                statusDiv.style.color = '#856404';
-                statusDiv.style.border = '1px solid #ffeaa7';
-                statusIcon.style.color = '#ffc107';
-                statusText.textContent = 'غير متصل - يعرض البيانات المحلية فقط';
-            }
+                return `
+                    <tr>
+                        <td>${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</td>
+                        <td>${order.orderId}</td>
+                        <td>${customerName}</td>
+                        <td>${customerPhone}</td>
+                        <td>${productCount} منتج</td>
+                        <td>${totalAmount} جنيه</td>
+                        <td>${order.source || 'website'}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadData, 30000);
+        function refreshAllData() {
+            loadAllLocalData();
+            updateStatistics();
+            alert('تم تحديث البيانات بنجاح!');
+        }
+
+        function exportToExcel() {
+            alert('سيتم إضافة ميزة التصدير لاحقاً');
+        }
     </script>
 </body>
 </html>
