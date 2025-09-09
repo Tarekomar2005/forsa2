@@ -5,32 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة إدارة البيانات المحلية - Forsa</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
+
         .header {
             text-align: center;
             margin-bottom: 40px;
         }
+
         .header h1 {
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             font-size: 2.5em;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
+
+        .header h1 i {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
         .connection-status {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -41,95 +67,336 @@
             font-size: 16px;
             font-weight: bold;
         }
+
         .connection-status.connected {
             background: #d4edda;
             border-color: #c3e6cb;
             color: #155724;
         }
+
         .connection-status.disconnected {
             background: #f8d7da;
             border-color: #f5c6cb;
             color: #721c24;
         }
+
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
             margin-bottom: 40px;
         }
+
         .stat-card {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 20px;
-            border-radius: 15px;
+            padding: 30px;
+            border-radius: 20px;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .stat-number { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
-        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 30px; }
-        .tab {
-            padding: 15px 30px;
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
         }
-        .tab.active { border-bottom-color: #667eea; color: #667eea; font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .table-container {
-            overflow-x: auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: bold; color: #333; }
-        tr:hover { background: #f8f9fa; }
+
+        .stat-label {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
         .actions {
-            margin-bottom: 30px;
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            flex-wrap: wrap;
+            margin-bottom: 40px;
         }
+
         .btn {
-            padding: 12px 25px;
+            padding: 15px 25px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
         }
-        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .btn-success { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
-        .btn-danger { background: linear-gradient(135deg, #f44336, #da190b); color: white; }
-        .btn-warning { background: linear-gradient(135deg, #ff9800, #f57c00); color: white; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
-        .empty-state { text-align: center; padding: 60px 20px; color: #666; }
-        .empty-state i { font-size: 4em; margin-bottom: 20px; opacity: 0.3; }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ed573, #1dd1a1);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3742fa, #2f3542);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffa502, #ff6348);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #5352ed, #40407a);
+        }
+
+        .btn-teal {
+            background: linear-gradient(135deg, #0abde3, #006ba6);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 3px solid #eee;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 20px 30px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 4px solid transparent;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            background: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 18px 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            font-weight: bold;
+            color: #495057;
+            font-size: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
         .sync-status {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
         }
-        .synced { background: #d4edda; color: #155724; }
-        .unsynced { background: #f8d7da; color: #721c24; }
+
+        .synced {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .unsynced {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .action-btn.btn-edit {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-btn.btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: none;
+                border-left: 4px solid transparent;
+            }
+            
+            .tab.active {
+                border-left-color: #667eea;
+                border-bottom-color: transparent;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #000;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 لوحة إدارة البيانات - Forsa</h1>
-            <p>إدارة وعرض جميع طلبات ورسائل العملاء</p>
+            <h1><i class="fas fa-database"></i> لوحة إدارة البيانات المحلية</h1>
+            <p>إدارة ومراقبة البيانات المحفوظة محلياً في متصفح العميل</p>
+            
             <div class="connection-status" id="connectionStatus">
                 🟡 جاري فحص الاتصال مع Google Sheets...
             </div>
@@ -138,50 +405,105 @@
         <div class="stats" id="statsContainer">
             <div class="stat-card">
                 <div class="stat-number" id="totalContacts">0</div>
-                <div>إجمالي الرسائل</div>
+                <div class="stat-label">مراسلة</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalQuickOrders">0</div>
-                <div>الطلبات السريعة</div>
+                <div class="stat-number" id="totalQuickOrders">2</div>
+                <div class="stat-label">غير مزامنة</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalCompleteOrders">0</div>
-                <div>الطلبات الكاملة</div>
+                <div class="stat-number" id="totalCompleteOrders">2</div>
+                <div class="stat-label">الطلبات السريعة</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalRevenue">0</div>
-                <div>إجمالي المبيعات (جنيه)</div>
+                <div class="stat-label">رسائل التواصل</div>
             </div>
         </div>
 
         <div class="actions">
-            <button class="btn btn-success" onclick="refreshAllData()">
-                <i class="fas fa-sync-alt"></i> تحديث من جميع المصادر
+            <button class="btn btn-danger" onclick="clearAllLocalData()">
+                <i class="fas fa-trash"></i> مسح جميع البيانات
+            </button>
+            <button class="btn btn-success" onclick="addTestOrder()">
+                <i class="fas fa-plus"></i> إضافة طلب تجريبي
+            </button>
+            <button class="btn btn-info" onclick="exportData()">
+                <i class="fas fa-star"></i> فحص البيانات
+            </button>
+            <button class="btn btn-warning" onclick="refreshAllData()">
+                <i class="fas fa-sync-alt"></i> تحديث
             </button>
             <button class="btn btn-primary" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> تصدير Excel
+                <i class="fas fa-download"></i> تصدير البيانات
+            </button>
+            <button class="btn btn-teal" onclick="syncData()">
+                <i class="fas fa-sync"></i> مزامنة البيانات
             </button>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showTab('contacts')">رسائل التواصل</button>
-            <button class="tab" onclick="showTab('quickOrders')">الطلبات السريعة</button>
-            <button class="tab" onclick="showTab('completeOrders')">الطلبات الكاملة</button>
+            <button class="tab active" onclick="showTab('completeOrders')">
+                <i class="fas fa-clipboard-list"></i>
+                الطلبات الكاملة
+            </button>
+            <button class="tab" onclick="showTab('quickOrders')">
+                <i class="fas fa-shopping-cart"></i>
+                الطلبات السريعة
+            </button>
+            <button class="tab" onclick="showTab('contacts')">
+                <i class="fas fa-envelope"></i>
+                رسائل التواصل
+            </button>
         </div>
 
-        <div id="contacts" class="tab-content active">
+        <div id="completeOrders" class="tab-content active">
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
+                            <th>رقم الطلب</th>
                             <th>التاريخ</th>
-                            <th>الاسم</th>
-                            <th>البريد الإلكتروني</th>
-                            <th>الرسالة</th>
-                            <th>المصدر</th>
+                            <th>بيانات العميل</th>
+                            <th>عنوان التسليم</th>
+                            <th>المنتجات المختارة</th>
+                            <th>الإجمالي</th>
+                            <th>حالة المزامنة</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="contactsTableBody"></tbody>
+                    <tbody id="completeOrdersTableBody">
+                        <tr>
+                            <td>ORD-1757442249312</td>
+                            <td>9/9/2024 م 3:29:9</td>
+                            <td>
+                                <strong>محمد</strong><br>
+                                01272345600<br>
+                                tarek.2224566@gmail.com
+                            </td>
+                            <td>
+                                1fknk<br>
+                                cairo
+                            </td>
+                            <td>
+                                1 منتج<br>
+                                (حقيبة يد عصرية وعملية (الكمية))
+                            </td>
+                            <td>5250 جنيه</td>
+                            <td>غير مزامنة</td>
+                            <td>
+                                <button class="action-btn btn-view" onclick="viewDetails('ORD-1757442249312')">
+                                    <i class="fas fa-eye"></i> عرض التفاصيل
+                                </button>
+                                <button class="action-btn btn-edit" onclick="showCustomerModal('ORD-1757442249312')">
+                                    <i class="fas fa-user-friends"></i> العميل والمنتجات
+                                </button>
+                                <button class="action-btn btn-delete" onclick="deleteOrder('ORD-1757442249312')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -203,21 +525,19 @@
             </div>
         </div>
 
-        <div id="completeOrders" class="tab-content">
+        <div id="contacts" class="tab-content">
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>التاريخ</th>
-                            <th>رقم الطلب</th>
-                            <th>العميل</th>
-                            <th>الهاتف</th>
-                            <th>المنتجات</th>
-                            <th>المبلغ الإجمالي</th>
+                            <th>الاسم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>الرسالة</th>
                             <th>المصدر</th>
                         </tr>
                     </thead>
-                    <tbody id="completeOrdersTableBody"></tbody>
+                    <tbody id="contactsTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -324,26 +644,54 @@
             const tbody = document.getElementById('completeOrdersTableBody');
             
             if (allData.completeOrders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-clipboard-list"></i><p>لا توجد طلبات كاملة</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-clipboard-list"></i><h3>لا توجد طلبات كاملة</h3><p>ستظهر هنا جميع الطلبات المستلمة من العملاء</p></td></tr>';
                 return;
             }
             
             tbody.innerHTML = allData.completeOrders.map(order => {
                 const date = new Date(order.timestamp || Date.now());
+                const orderId = order.orderId || 'ORD-' + Date.now();
                 const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
                 const customerPhone = order.customer ? order.customer.phone : order.customerPhone || 'غير محدد';
+                const customerEmail = order.customer ? order.customer.email : order.customerEmail || '';
+                const customerCity = order.customer ? order.customer.city : order.customerCity || 'غير محدد';
+                const customerAddress = order.customer ? order.customer.address : order.customerAddress || 'غير محدد';
                 const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
-                const productCount = order.products ? order.products.length : 'غير محدد';
+                const productCount = order.products ? order.products.length : order.totalItems || 1;
+                const productNames = order.products ? order.products.map(p => p.name).join(', ') : 'منتجات مختلفة';
+                const syncStatus = order.source === 'google_sheets' ? 'synced' : 'unsynced';
+                const syncLabel = order.source === 'google_sheets' ? 'مزامن' : 'غير مزامن';
                 
                 return `
                     <tr>
-                        <td>${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</td>
-                        <td>${order.orderId}</td>
-                        <td>${customerName}</td>
-                        <td>${customerPhone}</td>
-                        <td>${productCount} منتج</td>
-                        <td>${totalAmount} جنيه</td>
-                        <td>${order.source || 'website'}</td>
+                        <td><strong>${orderId}</strong></td>
+                        <td>${date.toLocaleDateString('ar-EG')} م ${date.toLocaleTimeString('ar-EG')}</td>
+                        <td>
+                            <strong>${customerName}</strong><br>
+                            ${customerPhone}<br>
+                            ${customerEmail ? customerEmail : ''}
+                        </td>
+                        <td>
+                            ${customerAddress}<br>
+                            ${customerCity}
+                        </td>
+                        <td>
+                            ${productCount} منتج<br>
+                            <small>(${productNames.length > 50 ? productNames.substring(0, 50) + '...' : productNames})</small>
+                        </td>
+                        <td><strong>${totalAmount} جنيه</strong></td>
+                        <td><span class="sync-status ${syncStatus}">${syncLabel}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewDetails('${orderId}')" title="عرض التفاصيل">
+                                <i class="fas fa-eye"></i> عرض التفاصيل
+                            </button>
+                            <button class="action-btn btn-edit" onclick="showCustomerModal('${orderId}')" title="بيانات العميل">
+                                <i class="fas fa-user-friends"></i> العميل والمنتجات
+                            </button>
+                            <button class="action-btn btn-delete" onclick="deleteOrder('${orderId}')" title="حذف الطلب">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -355,9 +703,305 @@
             alert('تم تحديث البيانات بنجاح!');
         }
 
-        function exportToExcel() {
-            alert('سيتم إضافة ميزة التصدير لاحقاً');
+        function clearAllLocalData() {
+            if (confirm('هل أنت متأكد من حذف جميع البيانات المحلية؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                localStorage.removeItem('forsa_contacts');
+                localStorage.removeItem('forsa_orders');
+                localStorage.removeItem('forsa_complete_orders');
+                localStorage.removeItem('forsa_cart');
+                localStorage.removeItem('forsa_wishlist');
+                
+                loadAllLocalData();
+                updateStatistics();
+                showNotification('تم حذف جميع البيانات المحلية بنجاح!', 'success');
+            }
         }
+
+        function addTestOrder() {
+            const testOrder = {
+                orderId: 'TEST-' + Date.now(),
+                timestamp: Date.now(),
+                customer: {
+                    name: 'عميل تجريبي',
+                    phone: '01234567890',
+                    email: 'test@example.com',
+                    city: 'القاهرة',
+                    address: 'عنوان تجريبي'
+                },
+                products: [
+                    {
+                        name: 'حقيبة تجريبية',
+                        category: 'حقائب يد',
+                        price: 500,
+                        quantity: 1
+                    }
+                ],
+                totals: {
+                    totalItems: 1,
+                    totalAmount: 500
+                },
+                paymentMethod: 'cash_on_delivery',
+                orderNotes: 'طلب تجريبي من لوحة الإدارة',
+                source: 'admin_panel'
+            };
+            
+            const existingOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            existingOrders.push(testOrder);
+            localStorage.setItem('forsa_complete_orders', JSON.stringify(existingOrders));
+            
+            loadAllLocalData();
+            updateStatistics();
+            showNotification('تم إضافة طلب تجريبي بنجاح!', 'success');
+        }
+
+        function exportData() {
+            const report = {
+                timestamp: new Date().toLocaleString('ar-EG'),
+                summary: {
+                    totalContacts: allData.contacts.length,
+                    totalQuickOrders: allData.quickOrders.length,
+                    totalCompleteOrders: allData.completeOrders.length,
+                    totalRevenue: allData.completeOrders.reduce((sum, order) => {
+                        const amount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                        return sum + (parseFloat(amount) || 0);
+                    }, 0)
+                },
+                data: allData
+            };
+            
+            console.log('تقرير البيانات:', report);
+            
+            const connectionStatus = document.getElementById('connectionStatus');
+            const isConnected = connectionStatus.classList.contains('connected');
+            
+            let statusMessage = `📊 تقرير فحص البيانات:\n\n`;
+            statusMessage += `📧 رسائل التواصل: ${report.summary.totalContacts}\n`;
+            statusMessage += `🛒 الطلبات السريعة: ${report.summary.totalQuickOrders}\n`;
+            statusMessage += `📋 الطلبات الكاملة: ${report.summary.totalCompleteOrders}\n`;
+            statusMessage += `💰 إجمالي الإيرادات: ${report.summary.totalRevenue.toLocaleString()} جنيه\n\n`;
+            statusMessage += `🔗 حالة الاتصال: ${isConnected ? 'متصل بـ Google Sheets' : 'غير متصل - بيانات محلية فقط'}\n\n`;
+            statusMessage += `تم فتح وحدة التحكم لعرض التفاصيل الكاملة`;
+            
+            alert(statusMessage);
+        }
+
+        function refreshAllData() {
+            showNotification('جاري تحديث البيانات...', 'info');
+            
+            loadAllLocalData();
+            updateStatistics();
+            
+            // محاولة تحديث من Google Sheets إذا كان متاحاً
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                syncFromGoogleSheets();
+            } else {
+                showNotification('تم تحديث البيانات المحلية فقط', 'warning');
+            }
+        }
+
+        function exportToExcel() {
+            const csvContent = generateCSVContent();
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `forsa_data_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('تم تصدير البيانات بنجاح!', 'success');
+            } else {
+                showNotification('المتصفح لا يدعم تحميل الملفات', 'error');
+            }
+        }
+
+        function syncData() {
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            
+            if (!savedUrl || savedUrl === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                if (confirm('لم يتم إعداد Google Sheets بعد. هل تريد الذهاب لصفحة الإعداد؟')) {
+                    window.open('test-sheets-setup.html', '_blank');
+                }
+                return;
+            }
+            
+            showNotification('جاري مزامنة البيانات مع Google Sheets...', 'info');
+            syncFromGoogleSheets();
+        }
+
+        async function syncFromGoogleSheets() {
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (!savedUrl) return;
+            
+            try {
+                const getUrl = savedUrl + '?action=getCompleteOrders&timestamp=' + Date.now();
+                const response = await fetch(getUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success' && data.data) {
+                        // دمج البيانات من Google Sheets مع البيانات المحلية
+                        const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                        const remoteOrders = data.data;
+                        
+                        // إضافة البيانات المحلية للعرض
+                        allData.completeOrders = [...localOrders, ...remoteOrders];
+                        
+                        updateConnectionStatus(true, `متصل بـ Google Sheets - عرض ${localOrders.length} طلب محلي + ${remoteOrders.length} طلب من الأجهزة الأخرى`);
+                        updateStatistics();
+                        displayCurrentTabData();
+                        showNotification('تم تحديث البيانات من Google Sheets بنجاح!', 'success');
+                    }
+                } else {
+                    throw new Error('فشل في الاتصال بـ Google Sheets');
+                }
+            } catch (error) {
+                console.error('خطأ في المزامنة:', error);
+                updateConnectionStatus(false, 'غير متصل - يعرض البيانات المحلية فقط');
+                showNotification('فشل في المزامنة. يتم عرض البيانات المحلية فقط.', 'warning');
+            }
+        }
+
+        function generateCSVContent() {
+            let csvContent = '\uFEFF'; // BOM for Arabic support
+            
+            // رؤوس الطلبات الكاملة
+            csvContent += 'نوع البيانات,رقم الطلب,التاريخ,اسم العميل,رقم الهاتف,البريد الإلكتروني,المدينة,العنوان,طريقة الدفع,عدد المنتجات,إجمالي المبلغ,ملاحظات\n';
+            
+            // بيانات الطلبات الكاملة
+            allData.completeOrders.forEach(order => {
+                const date = new Date(order.timestamp || Date.now());
+                const customerName = order.customer ? order.customer.name : order.customerName || '';
+                const customerPhone = order.customer ? order.customer.phone : order.customerPhone || '';
+                const customerEmail = order.customer ? order.customer.email : order.customerEmail || '';
+                const customerCity = order.customer ? order.customer.city : order.customerCity || '';
+                const customerAddress = order.customer ? order.customer.address : order.customerAddress || '';
+                const paymentMethod = order.paymentMethod || '';
+                const totalItems = order.totals ? order.totals.totalItems : (order.products ? order.products.length : 0);
+                const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                const notes = order.orderNotes || order.customerNotes || '';
+                
+                csvContent += `طلب كامل,${order.orderId || ''},${date.toLocaleDateString('ar-EG')},${customerName},${customerPhone},${customerEmail},${customerCity},${customerAddress},${paymentMethod},${totalItems},${totalAmount},${notes}\n`;
+            });
+            
+            return csvContent;
+        }
+
+        function viewDetails(orderId) {
+            const order = allData.completeOrders.find(o => o.orderId === orderId);
+            if (!order) {
+                showNotification('لم يتم العثور على الطلب', 'error');
+                return;
+            }
+            
+            let details = `📋 تفاصيل الطلب: ${orderId}\n\n`;
+            details += `👤 العميل: ${order.customer ? order.customer.name : order.customerName || 'غير محدد'}\n`;
+            details += `📱 الهاتف: ${order.customer ? order.customer.phone : order.customerPhone || 'غير محدد'}\n`;
+            details += `📧 البريد: ${order.customer ? order.customer.email : order.customerEmail || 'غير محدد'}\n`;
+            details += `🏙️ المدينة: ${order.customer ? order.customer.city : order.customerCity || 'غير محدد'}\n`;
+            details += `📍 العنوان: ${order.customer ? order.customer.address : order.customerAddress || 'غير محدد'}\n`;
+            details += `💳 طريقة الدفع: ${order.paymentMethod || 'غير محدد'}\n\n`;
+            
+            if (order.products && order.products.length > 0) {
+                details += `🛍️ المنتجات:\n`;
+                order.products.forEach((product, index) => {
+                    details += `  ${index + 1}. ${product.name} - ${product.price} جنيه (الكمية: ${product.quantity || 1})\n`;
+                });
+            }
+            
+            details += `\n💰 الإجمالي: ${order.totals ? order.totals.totalAmount : order.totalAmount || 0} جنيه`;
+            
+            if (order.orderNotes || order.customerNotes) {
+                details += `\n📝 ملاحظات: ${order.orderNotes || order.customerNotes}`;
+            }
+            
+            alert(details);
+        }
+
+        function showCustomerModal(orderId) {
+            const order = allData.completeOrders.find(o => o.orderId === orderId);
+            if (!order) {
+                showNotification('لم يتم العثور على الطلب', 'error');
+                return;
+            }
+            
+            const customerInfo = order.customer || {
+                name: order.customerName,
+                phone: order.customerPhone,
+                email: order.customerEmail,
+                city: order.customerCity,
+                address: order.customerAddress
+            };
+            
+            let modalContent = `👤 بيانات العميل للطلب: ${orderId}\n\n`;
+            modalContent += `الاسم: ${customerInfo.name || 'غير محدد'}\n`;
+            modalContent += `الهاتف: ${customerInfo.phone || 'غير محدد'}\n`;
+            modalContent += `البريد: ${customerInfo.email || 'غير محدد'}\n`;
+            modalContent += `المدينة: ${customerInfo.city || 'غير محدد'}\n`;
+            modalContent += `العنوان: ${customerInfo.address || 'غير محدد'}\n\n`;
+            
+            if (order.products && order.products.length > 0) {
+                modalContent += `🛍️ منتجات الطلب:\n`;
+                order.products.forEach((product, index) => {
+                    modalContent += `${index + 1}. ${product.name}\n   الفئة: ${product.category || 'غير محدد'}\n   السعر: ${product.price} جنيه\n   الكمية: ${product.quantity || 1}\n\n`;
+                });
+            }
+            
+            alert(modalContent);
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm(`هل أنت متأكد من حذف الطلب ${orderId}؟`)) {
+                const existingOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                const updatedOrders = existingOrders.filter(order => order.orderId !== orderId);
+                localStorage.setItem('forsa_complete_orders', JSON.stringify(updatedOrders));
+                
+                loadAllLocalData();
+                updateStatistics();
+                showNotification('تم حذف الطلب بنجاح!', 'success');
+            }
+        }
+
+        function updateConnectionStatus(isConnected, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = 'connection-status ' + (isConnected ? 'connected' : 'disconnected');
+            statusDiv.innerHTML = (isConnected ? '🟢 ' : '🔴 ') + message;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // فحص الاتصال مع Google Sheets عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllLocalData();
+            updateStatistics();
+            
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                setTimeout(syncFromGoogleSheets, 1000);
+            } else {
+                updateConnectionStatus(false, 'غير متصل - يعرض البيانات المحلية فقط');
+            }
+        });
     </script>
 </body>
 </html>
