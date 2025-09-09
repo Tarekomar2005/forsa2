@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -363,9 +362,17 @@
                     <i class="fas fa-user"></i>
                     بيانات العميل
                 </button>
-                <button class="export-excel-btn" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel"></i>
-                    تصدير Excel
+                <button class="view-orders-btn" onclick="viewRegisteredOrders()">
+                    <i class="fas fa-search"></i>
+                    عرض الطلبات المسجلة
+                </button>
+                <button class="email-confirmation-btn" onclick="sendCustomerConfirmation()">
+                    <i class="fas fa-envelope"></i>
+                    إرسال تأكيد عبر البريد
+                </button>
+                <button class="sales-reports-btn" onclick="viewSalesReports()">
+                    <i class="fas fa-chart-bar"></i>
+                    تقارير المبيعات
                 </button>
                 <button class="checkout-btn" onclick="proceedToCheckout()">
                     <i class="fas fa-credit-card"></i>

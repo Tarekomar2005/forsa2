@@ -718,85 +718,120 @@ function saveCustomerInfo() {
 }
 
 // Excel Export Functionality
-function exportToExcel() {
+// =============================================
+// NEW ADMIN FEATURES (REPLACE EXCEL EXPORT)
+// =============================================
+
+// 🔍 View Registered Orders - Opens Google Sheets or Local Data
+function viewRegisteredOrders() {
+    const hasGoogleSheetsUrl = GOOGLE_SHEETS_URL && !GOOGLE_SHEETS_URL.includes('PASTE_YOUR_WEB_APP_URL_HERE');
+    
+    if (hasGoogleSheetsUrl) {
+        // Open Google Sheets if configured
+        const sheetsUrl = GOOGLE_SHEETS_URL.replace('/exec', '/edit');
+        const confirmMsg = 'هل تريد فتح Google Sheets لعرض الطلبات المسجلة؟\n\nسيتم فتح الرابط في نافذة جديدة.';
+        
+        if (confirm(confirmMsg)) {
+            window.open(sheetsUrl, '_blank');
+            showNotification('جاري فتح Google Sheets...');
+        }
+    } else {
+        // Open local admin panel if Google Sheets not configured
+        const adminUrl = window.location.origin + window.location.pathname.replace('index.html', 'admin-panel.html');
+        window.open(adminUrl, '_blank');
+        showNotification('جاري فتح لوحة الإدارة المحلية...');
+    }
+}
+
+// 📩 Send Confirmation Email to Customer
+function sendCustomerConfirmation() {
     if (cart.length === 0) {
         showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
         return;
     }
     
-    if (!customerInfo.name) {
-        showNotification('يجب إدخال بيانات العميل أولاً', 'error');
+    if (!customerInfo.email) {
+        showNotification('يجب إدخال بريد العميل الإلكتروني أولاً', 'error');
         showCustomerForm();
         return;
     }
     
-    try {
-        // Create workbook and worksheets
-        const workbook = XLSX.utils.book_new();
+    // Create email content
+    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderNumber = 'ORD-' + Date.now();
+    
+    let emailSubject = `تأكيد طلبك من Forsa - رقم الطلب: ${orderNumber}`;
+    
+    let emailBody = `السلام عليكم ${customerInfo.name},\n\n`;
+    emailBody += `شكراً لك على طلبك من متجر Forsa للشنط الحريمي.\n\n`;
+    emailBody += `تفاصيل طلبك:\n`;
+    emailBody += `رقم الطلب: ${orderNumber}\n`;
+    emailBody += `التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
+    
+    emailBody += `المنتجات المطلوبة:\n`;
+    cart.forEach((item, index) => {
+        emailBody += `${index + 1}. ${item.name} - الكمية: ${item.quantity} - السعر: ${item.price * item.quantity} جنيه\n`;
+    });
+    
+    emailBody += `\nالإجمالي: ${totalPrice} جنيه\n\n`;
+    emailBody += `عنوان التسليم: ${customerInfo.address}, ${customerInfo.city}\n`;
+    emailBody += `طريقة الدفع: ${getPaymentMethodText(customerInfo.paymentMethod)}\n\n`;
+    emailBody += `سنتواصل معك قريباً لتأكيد الطلب وترتيب التسليم.\n\n`;
+    emailBody += `شكراً لثقتكم في Forsa 🌹\n\n`;
+    emailBody += `للاستفسار: واتساب 01234567890`;
+    
+    // Create mailto link
+    const mailtoLink = `mailto:${customerInfo.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+    
+    showNotification('تم فتح تطبيق البريد الإلكتروني لإرسال التأكيد');
+}
+
+// 📊 Sales Reports - Open Google Sheets Analytics or Local Stats
+function viewSalesReports() {
+    const hasGoogleSheetsUrl = GOOGLE_SHEETS_URL && !GOOGLE_SHEETS_URL.includes('PASTE_YOUR_WEB_APP_URL_HERE');
+    
+    if (hasGoogleSheetsUrl) {
+        // Open Google Sheets for analytics
+        const sheetsUrl = GOOGLE_SHEETS_URL.replace('/exec', '/edit');
+        const confirmMsg = 'سيتم فتح Google Sheets حيث يمكنك:\n\n📊 عمل تقارير وإحصائيات\n📈 تحليل المبيعات\n📋 تصدير البيانات\n\nهل تريد المتابعة؟';
         
-        // Customer Information Sheet
-        const customerData = [
-            ['بيانات العميل', ''],
-            ['الاسم', customerInfo.name],
-            ['رقم الهاتف', customerInfo.phone],
-            ['البريد الإلكتروني', customerInfo.email || '-'],
-            ['المحافظة/المدينة', customerInfo.city],
-            ['العنوان', customerInfo.address],
-            ['طريقة الدفع', getPaymentMethodText(customerInfo.paymentMethod)],
-            ['تاريخ الطلب', customerInfo.orderDate || new Date().toISOString().split('T')[0]],
-            ['ملاحظات', customerInfo.notes || '-'],
-            ['', ''],
-            ['تاريخ التصدير', new Date().toLocaleString('ar-EG')]
-        ];
-        
-        const customerSheet = XLSX.utils.aoa_to_sheet(customerData);
-        
-        // Products Sheet
-        const productsData = [
-            ['المنتجات المطلوبة', '', '', '', ''],
-            ['رقم', 'اسم المنتج', 'الفئة', 'الكمية', 'السعر الإجمالي']
-        ];
-        
-        let totalAmount = 0;
-        cart.forEach((item, index) => {
-            const totalPrice = item.price * item.quantity;
-            totalAmount += totalPrice;
-            productsData.push([
-                index + 1,
-                item.name,
-                item.category,
-                item.quantity,
-                `${totalPrice} جنيه`
-            ]);
-        });
-        
-        // Add total row
-        productsData.push(['', '', '', '', '']);
-        productsData.push(['', '', '', 'الإجمالي:', `${totalAmount} جنيه`]);
-        
-        const productsSheet = XLSX.utils.aoa_to_sheet(productsData);
-        
-        // Add sheets to workbook
-        XLSX.utils.book_append_sheet(workbook, customerSheet, 'بيانات العميل');
-        XLSX.utils.book_append_sheet(workbook, productsSheet, 'المنتجات');
-        
-        // Generate filename with customer name and date
-        const fileName = `Forsa_Order_${customerInfo.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
-        
-        // Save file
-        XLSX.writeFile(workbook, fileName);
-        
-        // Show sharing options
-        showSharingOptions(fileName);
-        
-        showNotification('تم تصدير الطلب إلى Excel بنجاح!');
-        
-    } catch (error) {
-        console.error('Error exporting to Excel:', error);
-        showNotification('حدث خطأ أثناء تصدير Excel', 'error');
+        if (confirm(confirmMsg)) {
+            window.open(sheetsUrl, '_blank');
+            showNotification('يمكنك الآن إنشاء التقارير من Google Sheets');
+        }
+    } else {
+        // Show local statistics
+        showLocalStatistics();
     }
 }
 
+// Show Local Statistics Modal
+function showLocalStatistics() {
+    const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+    const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+    
+    const today = new Date().toDateString();
+    const todayContacts = contacts.filter(c => new Date(c.timestamp).toDateString() === today).length;
+    const todayOrders = orders.filter(o => new Date(o.timestamp).toDateString() === today).length;
+    
+    const statsMessage = `📊 إحصائيات محلية:\n\n` +
+                        `📧 إجمالي الرسائل: ${contacts.length}\n` +
+                        `🛍️ إجمالي الطلبات: ${orders.length}\n` +
+                        `📅 رسائل اليوم: ${todayContacts}\n` +
+                        `📦 طلبات اليوم: ${todayOrders}\n\n` +
+                        `لعرض التفاصيل الكاملة، استخدم لوحة الإدارة.\n\n` +
+                        `هل تريد فتح لوحة الإدارة؟`;
+    
+    if (confirm(statsMessage)) {
+        const adminUrl = window.location.origin + window.location.pathname.replace('index.html', 'admin-panel.html');
+        window.open(adminUrl, '_blank');
+    }
+}
+
+// Utility function for payment method text
 function getPaymentMethodText(method) {
     const methods = {
         'cash_on_delivery': 'دفع عند الاستلام',
@@ -805,46 +840,6 @@ function getPaymentMethodText(method) {
         'orange_money': 'أورانج مني'
     };
     return methods[method] || method;
-}
-
-// Show sharing options after Excel export
-function showSharingOptions(fileName) {
-    const message = `تم حفظ ملف Excel: ${fileName}
-
-طرق إرسال الملف:
-
-1. واتساب: ارسل رسالة وارفق الملف
-2. بريد إلكتروني: orders@forsa-bags.com
-3. فيسبوك ميسنجر
-4. تليجرام
-
-هل تريد إرسال تفاصيل الطلب عبر الواتساب؟`;
-    
-    if (confirm(message)) {
-        sendOrderViaWhatsApp();
-    }
-}
-
-// Send order details via WhatsApp
-function sendOrderViaWhatsApp() {
-    const orderSummary = `طلب جديد من Forsa
-
-📝 بيانات العميل:
-الاسم: ${customerInfo.name}
-الهاتف: ${customerInfo.phone}
-المحافظة: ${customerInfo.city}
-العنوان: ${customerInfo.address}
-طريقة الدفع: ${getPaymentMethodText(customerInfo.paymentMethod)}
-
-🛍️ المنتجات:
-${cart.map((item, index) => `${index + 1}. ${item.name} - الكمية: ${item.quantity} - السعر: ${item.price * item.quantity} جنيه`).join('\n')}
-
-💰 إجمالي المبلغ: ${cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)} جنيه
-
-ملف Excel محفوظ في مجلد التحميل للتفاصيل الكاملة.`;
-    
-    const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(orderSummary)}`;
-    window.open(whatsappURL, '_blank');
 }
 
 // Enhanced checkout function
@@ -978,8 +973,9 @@ function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
 // =============================================
 
 // Google Apps Script Web App URL
-// Replace this URL with your actual Google Apps Script Web App URL
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+// IMPORTANT: Replace this URL with your actual Google Apps Script Web App URL
+// Example: 'https://script.google.com/macros/s/AKfycbz.../exec'
+const GOOGLE_SHEETS_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
 
 // Function to save contact form data to Google Sheets
 async function saveContactToGoogleSheets(name, email, message) {
