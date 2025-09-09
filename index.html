@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forsa - شنط حريمي أنيقة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Forsa</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link">الرئيسية</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#collection" class="nav-link">المعرض</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#about" class="nav-link">من نحن</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">اتصل بنا</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#collection" class="nav-cta">💼 تسوق الآن</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="highlight">Forsa</span> — حقيبتك.. هويتك
+                </h1>
+                <p class="hero-subtitle">شنط حريمي أنيقة وعملية تناسب كل إطلالة</p>
+                <p class="hero-description">اكتشفي مجموعتنا المتنوعة من الحقائب العصرية التي تجمع بين الأناقة والعملية</p>
+                <div class="hero-buttons">
+                    <a href="#collection" class="cta-button">🎀 تصفح الكوليكشن</a>
+                    <a href="#contact" class="cta-button secondary">📲 تواصل معنا</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Collection Section -->
+    <section id="collection" class="collection">
+        <div class="container">
+            <h2 class="section-title">مجموعتنا المميزة</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد كلاسيكية">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">حقائب يد</p>
+                        <h3 class="product-name">حقيبة يد كلاسيكية</h3>
+                        <p class="product-price">850 جنيه</p>
+                        <button class="product-btn">أضف للسلة</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كروس عملية">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">حقائب كروس</p>
+                        <h3 class="product-name">حقيبة كروس عملية</h3>
+                        <p class="product-price">650 جنيه</p>
+                        <button class="product-btn">أضف للسلة</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة ظهر أنيقة">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">حقيبة ظهر أنيقة</h3>
+                        <p class="product-price">750 جنيه</p>
+                        <button class="product-btn">اطلب الآن</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة سهرة فاخرة">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">حقيبة سهرة فاخرة</h3>
+                        <p class="product-price">950 جنيه</p>
+                        <button class="product-btn">اطلب الآن</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد عصرية">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">حقيبة يد عصرية</h3>
+                        <p class="product-price">700 جنيه</p>
+                        <button class="product-btn">اطلب الآن</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كتف أنيقة">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">حقيبة كتف أنيقة</h3>
+                        <p class="product-price">600 جنيه</p>
+                        <button class="product-btn">اطلب الآن</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">من نحن</h2>
+                    <p class="about-description">
+                        Forsa براند مصري للشنط الحريمي، بنجمع بين الأناقة والجودة في كل تصميم. 
+                        هدفنا نكمل إطلالتك بشنطة تعكس شخصيتك وتناسب جميع مناسباتك.
+                    </p>
+                    <p class="about-description">
+                        نحن نؤمن بأن كل امرأة تستحق أن تشعر بالثقة والأناقة، لذلك نقدم لك مجموعة متنوعة 
+                        من الحقائب العالية الجودة بتصاميم عصرية تواكب أحدث صيحات الموضة.
+                    </p>
+                    <div class="about-features">
+                        <div class="feature-item">
+                            <span class="icon">🌸</span>
+                            <span class="text">أنيقة</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="icon">💎</span>
+                            <span class="text">جودة</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="icon">🌍</span>
+                            <span class="text">محلية</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="About Forsa">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="section-title">اتصل بنا</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>تواصل معنا عبر</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link whatsapp">
+                            <i class="fab fa-whatsapp social-icon"></i>
+                            <span class="social-text">واتساب</span>
+                        </a>
+                        <a href="#" class="social-link instagram">
+                            <i class="fab fa-instagram social-icon"></i>
+                            <span class="social-text">إنستجرام</span>
+                        </a>
+                        <a href="#" class="social-link facebook">
+                            <i class="fab fa-facebook social-icon"></i>
+                            <span class="social-text">فيسبوك</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <h3>أرسل لنا رسالة</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="الاسم" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" placeholder="البريد الإلكتروني" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" placeholder="الرسالة" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">إرسال</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Forsa</span>
+                </div>
+                <div class="footer-social">
+                    <a href="#" class="footer-social-link">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="#" class="footer-social-link">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="footer-social-link">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Forsa. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "forsa-website",
+  "version": "1.0.0",
+  "description": "Forsa - Women's Handbags Website",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000",
+    "dev": "python -m http.server 3000",
+    "sass": "sass css/style.scss css/style.css --watch",
+    "build-sass": "sass css/style.scss css/style.css --style compressed"
+  },
+  "keywords": ["handbags", "fashion", "women", "arabic", "ecommerce"],
+  "author": "Forsa Team",
+  "license": "MIT",
+  "devDependencies": {
+    "sass": "^1.69.0",
+    "live-server": "^1.2.2"
+  }
+}
