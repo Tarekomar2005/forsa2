@@ -842,6 +842,47 @@ function getPaymentMethodText(method) {
     return methods[method] || method;
 }
 
+// View locally saved orders function
+function viewLocalOrders() {
+    const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+    const quickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+    
+    if (completeOrders.length === 0 && quickOrders.length === 0) {
+        alert('لا توجد طلبات محفوظة محلياً.');
+        return;
+    }
+    
+    let ordersList = '📊 الطلبات المحفوظة محلياً:\n\n';
+    
+    // Show complete orders
+    if (completeOrders.length > 0) {
+        ordersList += '🛍️ الطلبات الكاملة: ' + completeOrders.length + '\n';
+        completeOrders.slice(-3).forEach(order => {
+            ordersList += `• ${order.orderId}: ${order.customer.name} - ${order.totals.totalAmount} جنيه\n`;
+        });
+        ordersList += '\n';
+    }
+    
+    // Show quick orders  
+    if (quickOrders.length > 0) {
+        ordersList += '⚡ الطلبات السريعة: ' + quickOrders.length + '\n';
+        quickOrders.slice(-3).forEach(order => {
+            ordersList += `• ${order.productName} - ${order.customerName || 'غير محدد'}\n`;
+        });
+    }
+    
+    ordersList += '\n📁 لعرض التفاصيل الكاملة، افتح admin-panel.html';
+    
+    alert(ordersList);
+}
+
+// Add keyboard shortcut to view orders (Ctrl+Alt+O)
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.altKey && e.key === 'o') {
+        viewLocalOrders();
+    }
+});
+
 // Enhanced checkout function with automatic data saving
 function proceedToCheckout() {
     if (cart.length === 0) {
@@ -856,18 +897,34 @@ function proceedToCheckout() {
         return;
     }
     
+    // Show loading state
+    showNotification('جاري حفظ الطلب في قاعدة البيانات...', 'info');
+    
     // Save order data automatically to both Google Sheets and Local Storage
     saveCompleteOrderData()
-        .then(() => {
+        .then((orderData) => {
             // After successful save, send to WhatsApp
-            sendOrderToWhatsApp();
-            showNotification('تم حفظ الطلب وإرساله بنجاح! 🎉', 'success');
+            showNotification(`✅ تم حفظ الطلب رقم ${orderData.orderId} في قاعدة البيانات! 🎉`, 'success');
+            
+            // Optional: Ask if user wants to go to WhatsApp
+            if (confirm('تم حفظ الطلب بنجاح!\n\nهل تريد إرسال نسخة عبر الواتساب أيضاً؟')) {
+                sendOrderToWhatsApp();
+            }
         })
         .catch((error) => {
             console.error('Error saving order:', error);
-            // Still send to WhatsApp even if saving fails
-            sendOrderToWhatsApp();
-            showNotification('تم إرسال الطلب! (تم الحفظ المحلي فقط)', 'warning');
+            
+            // Check if Google Sheets URL is configured
+            if (GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                showNotification('⚠️ تم حفظ الطلب محلياً (لم يتم إعداد Google Sheets)', 'warning');
+            } else {
+                showNotification('⚠️ تم حفظ الطلب محلياً (مشكلة في الاتصال)', 'warning');
+            }
+            
+            // Ask if user still wants to go to WhatsApp
+            if (confirm('تم حفظ الطلب محلياً.\n\nهل تريد إرساله عبر الواتساب؟')) {
+                sendOrderToWhatsApp();
+            }
         });
 }
 
