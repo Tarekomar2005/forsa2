@@ -802,6 +802,18 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Open admin panel in new window
+function openAdminPanel() {
+    const adminWindow = window.open('admin-panel.html', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    if (!adminWindow) {
+        // Fallback if popup blocked
+        showNotification('⚠️ يرجى السماح بالنوافذ المنبثقة أو افتح الرابط يدوياً', 'warning');
+        window.location.href = 'admin-panel.html';
+    } else {
+        showNotification('📊 تم فتح لوحة إدارة البيانات', 'success');
+    }
+}
+
 // Enhanced checkout function with automatic data saving
 function proceedToCheckout() {
     if (cart.length === 0) {

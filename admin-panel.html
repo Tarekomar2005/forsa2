@@ -238,15 +238,23 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="ordersCount">0</div>
-                <div>الطلبات السريعة</div>
+                <div>إجمالي الطلبات</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="unsyncedCount">0</div>
-                <div>غير مزامنة</div>
+                <div class="stat-number" id="localOrdersCount">0</div>
+                <div>🏠 طلبات محلية</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="externalOrdersCount">0</div>
+                <div>📱 طلبات خارجية</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="syncedCount">0</div>
-                <div>مزامنة</div>
+                <div>☁️ مزامنة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="unsyncedCount">0</div>
+                <div>⚠️ غير مزامنة</div>
             </div>
         </div>
 
@@ -477,16 +485,50 @@
         function updateStats(contacts, orders, completeOrders) {
             const totalContacts = contacts.length;
             const totalOrders = orders.length + completeOrders.length;
+            
+            // Count orders by source
+            let localOrdersCount = 0;
+            let externalOrdersCount = 0;
+            let syncedCount = 0;
+            let unsyncedCount = 0;
+            
+            completeOrders.forEach(order => {
+                // Count by source
+                if (order.source && (order.source.startsWith('external_') || order.source === 'google_sheets')) {
+                    externalOrdersCount++;
+                } else {
+                    localOrdersCount++;
+                }
+                
+                // Count by sync status
+                if (order.synced) {
+                    syncedCount++;
+                } else {
+                    unsyncedCount++;
+                }
+            });
+            
+            // Add contacts to sync counts
             const unsyncedContacts = contacts.filter(c => !c.synced).length;
-            const unsyncedOrders = orders.filter(o => !o.synced).length;
-            const unsyncedCompleteOrders = completeOrders.filter(o => !o.synced).length;
-            const totalUnsynced = unsyncedContacts + unsyncedOrders + unsyncedCompleteOrders;
-            const totalSynced = (totalContacts + totalOrders) - totalUnsynced;
-
+            const syncedContacts = contacts.length - unsyncedContacts;
+            syncedCount += syncedContacts;
+            unsyncedCount += unsyncedContacts;
+            
+            // Update display
             document.getElementById('contactsCount').textContent = totalContacts;
             document.getElementById('ordersCount').textContent = totalOrders;
-            document.getElementById('unsyncedCount').textContent = totalUnsynced;
-            document.getElementById('syncedCount').textContent = totalSynced;
+            document.getElementById('localOrdersCount').textContent = localOrdersCount;
+            document.getElementById('externalOrdersCount').textContent = externalOrdersCount;
+            document.getElementById('syncedCount').textContent = syncedCount;
+            document.getElementById('unsyncedCount').textContent = unsyncedCount;
+            
+            // Log for debugging
+            console.log('📊 Stats Updated:');
+            console.log('Total Orders:', totalOrders);
+            console.log('🏠 Local Orders:', localOrdersCount);
+            console.log('📱 External Orders:', externalOrdersCount);
+            console.log('☁️ Synced:', syncedCount);
+            console.log('⚠️ Unsynced:', unsyncedCount);
         }
 
         function displayContacts(contacts) {
