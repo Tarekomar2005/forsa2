@@ -733,6 +733,39 @@ function getPaymentMethodText(method) {
     return methods[method] || method;
 }
 
+// Open Admin Panel function
+function openAdminPanel() {
+    const adminUrl = window.location.origin + window.location.pathname.replace('index.html', 'admin-panel.html');
+    const newWindow = window.open(adminUrl, '_blank');
+    
+    if (newWindow) {
+        showNotification('📈 تم فتح لوحة إدارة الطلبات في نافذة جديدة', 'success');
+    } else {
+        showNotification('تعذر فتح لوحة الإدارة. يرجى السماح بالنوافذ المنبثقة', 'error');
+    }
+}
+
+// Update saved orders count display
+function updateSavedOrdersCount() {
+    const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+    const savedOrdersInfo = document.getElementById('savedOrdersInfo');
+    const savedOrdersCount = document.getElementById('savedOrdersCount');
+    
+    if (completeOrders.length > 0) {
+        savedOrdersCount.textContent = completeOrders.length;
+        savedOrdersInfo.style.display = 'block';
+    } else {
+        savedOrdersInfo.style.display = 'none';
+    }
+}
+
+// Call this function when the page loads and when orders are saved
+document.addEventListener('DOMContentLoaded', function() {
+    updateSavedOrdersCount();
+    // Update count every 5 seconds to catch any changes
+    setInterval(updateSavedOrdersCount, 5000);
+});
+
 // View locally saved orders function
 function viewLocalOrders() {
     const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
@@ -803,6 +836,11 @@ function proceedToCheckout() {
         .then((orderData) => {
             // After successful save, send to WhatsApp
             showNotification(`✅ تم حفظ الطلب رقم ${orderData.orderId} في قاعدة البيانات! 🎉`, 'success');
+            
+            // Show admin panel link
+            setTimeout(() => {
+                showNotification(`📈 يمكنك عرض الطلب في لوحة الإدارة أو باستخدام Ctrl+Alt+O`, 'info');
+            }, 2000);
             
             // Optional: Ask if user wants to go to WhatsApp
             if (confirm('تم حفظ الطلب بنجاح!\n\nهل تريد إرسال نسخة عبر الواتساب أيضاً؟')) {
@@ -1074,6 +1112,9 @@ function saveCompleteOrderToLocalStorage(orderData) {
         localStorage.setItem('forsa_orders', JSON.stringify(legacyOrders));
         
         console.log('Complete order saved to local storage');
+        
+        // Update the saved orders count display
+        updateSavedOrdersCount();
         
     } catch (error) {
         console.error('Failed to save complete order locally:', error);
