@@ -321,11 +321,13 @@
         }
 
         function updateStats(contacts, orders) {
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
             const totalContacts = contacts.length;
-            const totalOrders = orders.length;
+            const totalOrders = orders.length + completeOrders.length;
             const unsyncedContacts = contacts.filter(c => !c.synced).length;
             const unsyncedOrders = orders.filter(o => !o.synced).length;
-            const totalUnsynced = unsyncedContacts + unsyncedOrders;
+            const unsyncedCompleteOrders = completeOrders.filter(o => !o.synced).length;
+            const totalUnsynced = unsyncedContacts + unsyncedOrders + unsyncedCompleteOrders;
             const totalSynced = (totalContacts + totalOrders) - totalUnsynced;
 
             document.getElementById('contactsCount').textContent = totalContacts;
@@ -430,16 +432,20 @@
         function exportData() {
             const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
             const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
 
             const data = {
                 exportDate: new Date().toISOString(),
                 contacts: contacts,
                 orders: orders,
+                completeOrders: completeOrders,
                 summary: {
                     totalContacts: contacts.length,
-                    totalOrders: orders.length,
+                    totalQuickOrders: orders.length,
+                    totalCompleteOrders: completeOrders.length,
                     unsyncedContacts: contacts.filter(c => !c.synced).length,
-                    unsyncedOrders: orders.filter(o => !o.synced).length
+                    unsyncedOrders: orders.filter(o => !o.synced).length,
+                    unsyncedCompleteOrders: completeOrders.filter(o => !o.synced).length
                 }
             };
 

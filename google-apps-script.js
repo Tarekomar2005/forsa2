@@ -43,6 +43,8 @@ function doPost(e) {
       return handleContactSubmission(data);
     } else if (data.action === 'saveOrder') {
       return handleOrderSubmission(data);
+    } else if (data.action === 'saveCompleteOrder') {
+      return handleCompleteOrderSubmission(data);
     } else {
       return createResponse(false, 'Invalid action');
     }
@@ -186,6 +188,96 @@ function handleOrderSubmission(data) {
 }
 
 // ============================================
+// COMPLETE ORDER HANDLER  
+// ============================================
+
+function handleCompleteOrderSubmission(data) {
+  try {
+    // Open the orders spreadsheet
+    const sheet = SpreadsheetApp.openById(ORDERS_SHEET_ID).getSheetByName('Complete Orders');
+    
+    // If sheet doesn't exist, create it with headers
+    if (!sheet) {
+      const newSheet = SpreadsheetApp.openById(ORDERS_SHEET_ID).insertSheet('Complete Orders');
+      const headers = [
+        'رقم الطلب',
+        'تاريخ الطلب',
+        'اسم العميل',
+        'رقم الهاتف',
+        'البريد الإلكتروني',
+        'المحافظة',
+        'العنوان',
+        'طريقة الدفع',
+        'ملاحظات العميل',
+        'عدد القطع',
+        'إجمالي المبلغ',
+        'تفاصيل المنتجات',
+        'عنوان IP',
+        'المتصفح',
+        'حالة الطلب'
+      ];
+      newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      
+      // Format headers
+      newSheet.getRange(1, 1, 1, headers.length)
+        .setBackground('#FF6B6B')
+        .setFontColor('white')
+        .setFontWeight('bold');
+    }
+    
+    // Parse products data
+    let productsDetails = '';
+    try {
+      const products = JSON.parse(data.products || '[]');
+      productsDetails = products.map((product, index) => 
+        `${index + 1}. ${product.name} - الفئة: ${product.category} - الكمية: ${product.quantity} - السعر: ${product.price} جنيه - الإجمالي: ${product.total} جنيه`
+      ).join('\n');
+    } catch (error) {
+      productsDetails = data.products || 'خطأ في تحليل المنتجات';
+    }
+    
+    // Prepare the row data
+    const rowData = [
+      data.orderId || 'ORD-' + Date.now(),
+      new Date(data.timestamp),
+      data.customerName || '',
+      data.customerPhone || '',
+      data.customerEmail || '',
+      data.customerCity || '',
+      data.customerAddress || '',
+      data.paymentMethod || '',
+      data.customerNotes || '',
+      data.totalItems || 0,
+      `${data.totalAmount || 0} جنيه`,
+      productsDetails,
+      data.ip || 'Unknown',
+      data.userAgent || 'Unknown',
+      'جديد'
+    ];
+    
+    // Add the data to the sheet
+    const targetSheet = sheet || SpreadsheetApp.openById(ORDERS_SHEET_ID).getSheetByName('Complete Orders');
+    targetSheet.appendRow(rowData);
+    
+    // Auto-resize columns for better visibility
+    targetSheet.autoResizeColumns(1, rowData.length);
+    
+    // Send email notification for complete order
+    sendCompleteOrderNotificationEmail(data, productsDetails);
+    
+    return createResponse(true, 'Complete order saved successfully', {
+      orderId: data.orderId,
+      customerName: data.customerName,
+      totalAmount: data.totalAmount
+    });
+    
+  } catch (error) {
+    console.error('Error saving complete order:', error);
+    return createResponse(false, 'Failed to save complete order: ' + error.toString());
+  }
+}
+
+// ============================================
 // EMAIL NOTIFICATION FUNCTIONS
 // ============================================
 
@@ -300,6 +392,95 @@ function sendOrderNotificationEmail(data) {
     
   } catch (error) {
     console.error('Error sending order notification email:', error);
+  }
+}
+
+function sendCompleteOrderNotificationEmail(data, productsDetails) {
+  try {
+    // Configure your email settings here
+    const recipientEmail = 'your-email@example.com'; // Replace with your email
+    const subject = `🛍️ طلب كامل جديد من Forsa - ${data.orderId}`;
+    
+    const htmlBody = `
+      <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 25px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1>🛍️ طلب كامل جديد من Forsa</h1>
+          <h2 style="margin: 10px 0; font-size: 1.5em;">رقم الطلب: ${data.orderId}</h2>
+        </div>
+        
+        <div style="padding: 25px; background: #f9f9f9; border-radius: 0 0 10px 10px;">
+          <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; border-bottom: 3px solid #ff6b6b; padding-bottom: 10px;">👤 بيانات العميل:</h2>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+              <tr style="background: #fff5f5;">
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold; width: 30%;">الاسم:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.customerName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">رقم الهاتف:</td>
+                <td style="padding: 12px; border: 1px solid #ddd; color: #ff6b6b; font-weight: bold;">${data.customerPhone}</td>
+              </tr>
+              <tr style="background: #fff5f5;">
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">البريد الإلكتروني:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.customerEmail || 'غير محدد'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">المحافظة:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.customerCity || 'غير محدد'}</td>
+              </tr>
+              <tr style="background: #fff5f5;">
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">العنوان:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.customerAddress || 'غير محدد'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">طريقة الدفع:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.paymentMethod || 'غير محدد'}</td>
+              </tr>
+              ${data.customerNotes ? `
+              <tr style="background: #fff5f5;">
+                <td style="padding: 12px; border: 1px solid #ddd; font-weight: bold;">ملاحظات:</td>
+                <td style="padding: 12px; border: 1px solid #ddd;">${data.customerNotes}</td>
+              </tr>` : ''}
+            </table>
+          </div>
+          
+          <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; border-bottom: 3px solid #ff6b6b; padding-bottom: 10px;">🛍️ تفاصيل الطلب:</h2>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 1.2em; font-weight: bold;">📦 عدد القطع: ${data.totalItems}</span>
+                <span style="font-size: 1.4em; font-weight: bold; color: #ff6b6b;">💰 الإجمالي: ${data.totalAmount} جنيه</span>
+              </div>
+            </div>
+            
+            <div style="background: #f1f3f4; padding: 15px; border-radius: 8px; white-space: pre-line; font-family: monospace; line-height: 1.6;">
+              ${productsDetails}
+            </div>
+          </div>
+          
+          <div style="background: #e8f5e8; border: 1px solid #c3e6cb; padding: 20px; border-radius: 10px; text-align: center;">
+            <h3 style="color: #155724; margin: 0 0 10px 0;">📊 معلومات مهمة:</h3>
+            <p style="margin: 5px 0; color: #155724;">📅 تاريخ الطلب: ${new Date(data.timestamp).toLocaleString('ar-EG')}</p>
+            <p style="margin: 5px 0; color: #155724;">📊 تم حفظ هذا الطلب تلقائياً في Google Sheets</p>
+            <p style="margin: 5px 0; color: #155724;">🚀 يمكنك الوصول إلى جميع الطلبات من لوحة الإدارة</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Only send email if recipient email is configured
+    if (recipientEmail !== 'your-email@example.com') {
+      MailApp.sendEmail({
+        to: recipientEmail,
+        subject: subject,
+        htmlBody: htmlBody
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error sending complete order notification email:', error);
   }
 }
 

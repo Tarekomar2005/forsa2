@@ -842,7 +842,7 @@ function getPaymentMethodText(method) {
     return methods[method] || method;
 }
 
-// Enhanced checkout function
+// Enhanced checkout function with automatic data saving
 function proceedToCheckout() {
     if (cart.length === 0) {
         showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
@@ -850,14 +850,25 @@ function proceedToCheckout() {
     }
     
     // Check if customer info exists
-    if (!customerInfo.name) {
-        if (confirm('لإتمام الطلب بأفضل شكل، هل تريد إدخال بياناتك أولاً؟')) {
-            showCustomerForm();
-            return;
-        }
+    if (!customerInfo.name || !customerInfo.phone) {
+        showNotification('يجب إدخال بيانات العميل (الاسم ورقم الهاتف) أولاً', 'error');
+        showCustomerForm();
+        return;
     }
     
-    sendOrderToWhatsApp();
+    // Save order data automatically to both Google Sheets and Local Storage
+    saveCompleteOrderData()
+        .then(() => {
+            // After successful save, send to WhatsApp
+            sendOrderToWhatsApp();
+            showNotification('تم حفظ الطلب وإرساله بنجاح! 🎉', 'success');
+        })
+        .catch((error) => {
+            console.error('Error saving order:', error);
+            // Still send to WhatsApp even if saving fails
+            sendOrderToWhatsApp();
+            showNotification('تم إرسال الطلب! (تم الحفظ المحلي فقط)', 'warning');
+        });
 }
 
 // Enhanced WhatsApp Order Function
@@ -966,6 +977,140 @@ function sendContactMessageToWhatsApp(name, email, message) {
 function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
     const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappURL, '_blank');
+}
+
+// =============================================
+// COMPLETE ORDER DATA SAVING FUNCTION  
+// =============================================
+
+// Save complete order data to both Google Sheets and Local Storage
+async function saveCompleteOrderData() {
+    const orderData = {
+        orderId: 'ORD-' + Date.now(),
+        timestamp: new Date().toISOString(),
+        customer: {
+            name: customerInfo.name,
+            phone: customerInfo.phone,
+            email: customerInfo.email || '',
+            city: customerInfo.city || '',
+            address: customerInfo.address || '',
+            paymentMethod: customerInfo.paymentMethod || '',
+            notes: customerInfo.notes || ''
+        },
+        products: cart.map(item => ({
+            name: item.name,
+            category: item.category,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.price * item.quantity
+        })),
+        totals: {
+            totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
+            totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        },
+        source: 'website_complete_order'
+    };
+    
+    try {
+        // Save to Google Sheets first
+        await saveCompleteOrderToGoogleSheets(orderData);
+        console.log('✅ Order saved to Google Sheets successfully');
+        
+        // Save to local storage as backup
+        saveCompleteOrderToLocalStorage(orderData);
+        console.log('✅ Order saved to local storage successfully');
+        
+        return Promise.resolve(orderData);
+        
+    } catch (error) {
+        console.error('❌ Error saving to Google Sheets:', error);
+        
+        // Always save locally even if Google Sheets fails
+        saveCompleteOrderToLocalStorage(orderData);
+        console.log('✅ Order saved to local storage as backup');
+        
+        throw error;
+    }
+}
+
+// Save complete order to Google Sheets
+async function saveCompleteOrderToGoogleSheets(orderData) {
+    const data = {
+        action: 'saveCompleteOrder',
+        orderId: orderData.orderId,
+        customerName: orderData.customer.name,
+        customerPhone: orderData.customer.phone,
+        customerEmail: orderData.customer.email,
+        customerCity: orderData.customer.city,
+        customerAddress: orderData.customer.address,
+        paymentMethod: orderData.customer.paymentMethod,
+        customerNotes: orderData.customer.notes,
+        products: JSON.stringify(orderData.products),
+        totalItems: orderData.totals.totalItems,
+        totalAmount: orderData.totals.totalAmount,
+        orderType: 'complete_order',
+        timestamp: orderData.timestamp,
+        source: orderData.source,
+        ip: await getUserIP().catch(() => 'Unknown'),
+        userAgent: navigator.userAgent
+    };
+    
+    try {
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        console.log('Complete order data sent to Google Sheets');
+        return Promise.resolve();
+        
+    } catch (error) {
+        console.error('Failed to save complete order to Google Sheets:', error);
+        throw error;
+    }
+}
+
+// Save complete order to local storage
+function saveCompleteOrderToLocalStorage(orderData) {
+    try {
+        // Save to complete orders list
+        const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+        const newCompleteOrder = {
+            ...orderData,
+            id: Date.now(),
+            synced: false
+        };
+        
+        completeOrders.push(newCompleteOrder);
+        localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
+        
+        // Also save to the existing orders format for compatibility with admin panel
+        const legacyOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+        orderData.products.forEach(product => {
+            legacyOrders.push({
+                id: Date.now() + Math.random(),
+                productName: product.name,
+                productPrice: `${product.price} جنيه`,
+                productCategory: product.category,
+                quantity: product.quantity,
+                customerName: orderData.customer.name,
+                customerPhone: orderData.customer.phone,
+                orderType: 'complete_order',
+                timestamp: orderData.timestamp,
+                synced: false
+            });
+        });
+        localStorage.setItem('forsa_orders', JSON.stringify(legacyOrders));
+        
+        console.log('Complete order saved to local storage');
+        
+    } catch (error) {
+        console.error('Failed to save complete order locally:', error);
+    }
 }
 
 // =============================================
