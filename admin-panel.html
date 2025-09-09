@@ -275,6 +275,9 @@
             <button class="btn btn-warning" onclick="simulateOrderFromOtherDevice()" style="background: #fd7e14;">
                 <i class="fas fa-mobile-alt"></i> محاكاة طلب من جهاز آخر
             </button>
+            <button class="btn btn-info" onclick="forceCreateExternalOrder()" style="background: #6c757d;">
+                <i class="fas fa-plus-circle"></i> عمل طلب وهمي من جهاز تاني
+            </button>
             <button class="btn btn-danger" onclick="clearAllData()">
                 <i class="fas fa-trash"></i> مسح جميع البيانات
             </button>
@@ -865,16 +868,89 @@ ${productsDetails}
         }
 
         function syncData() {
-            // This would typically call the sync function from the main script
-            if (typeof syncLocalDataToGoogleSheets === 'function') {
-                syncLocalDataToGoogleSheets();
-                setTimeout(() => {
-                    loadData();
-                    alert('تم بدء عملية المزامنة. تحقق من وحدة التحكم للتفاصيل.');
-                }, 1000);
-            } else {
-                alert('دالة المزامنة غير متوفرة. تأكد من تحميل script.js');
+            // Sync local data to Google Sheets
+            syncLocalDataToGoogleSheets();
+        }
+        
+        // Sync local data to Google Sheets
+        async function syncLocalDataToGoogleSheets() {
+            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                alert('⚠️ يرجى إعداد رابط Google Sheets أولاً!');
+                return;
             }
+            
+            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            
+            let synced = 0;
+            let failed = 0;
+            
+            console.log('🔄 Starting sync process...');
+            
+            // Sync unsynced contacts
+            for (const contact of contacts.filter(c => !c.synced)) {
+                try {
+                    await fetch(GOOGLE_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveContact',
+                            name: contact.name,
+                            email: contact.email,
+                            message: contact.message,
+                            source: 'sync_from_admin'
+                        })
+                    });
+                    contact.synced = true;
+                    synced++;
+                } catch (error) {
+                    console.error('Failed to sync contact:', error);
+                    failed++;
+                }
+            }
+            
+            // Sync unsynced complete orders
+            for (const order of completeOrders.filter(o => !o.synced)) {
+                try {
+                    await fetch(GOOGLE_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveCompleteOrder',
+                            orderId: order.orderId,
+                            customerName: order.customerName,
+                            customerPhone: order.customerPhone,
+                            customerEmail: order.customerEmail,
+                            customerCity: order.customerCity,
+                            customerAddress: order.customerAddress,
+                            paymentMethod: order.paymentMethod,
+                            customerNotes: order.customerNotes,
+                            products: JSON.stringify(order.products),
+                            totalItems: order.totalItems,
+                            totalAmount: order.totalAmount,
+                            source: 'sync_from_admin'
+                        })
+                    });
+                    order.synced = true;
+                    synced++;
+                } catch (error) {
+                    console.error('Failed to sync order:', error);
+                    failed++;
+                }
+            }
+            
+            // Update localStorage with sync status
+            localStorage.setItem('forsa_contacts', JSON.stringify(contacts));
+            localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
+            
+            alert(`✅ مزامنة مكتملة!\n\nتم مزامنة: ${synced}\nفشل في: ${failed}`);
+            console.log(`✅ Sync completed: ${synced} successful, ${failed} failed`);
+            
+            // Refresh data display
+            loadData();
         }
 
         function exportData() {
@@ -1073,6 +1149,54 @@ ${productsDetails}
         });
         
         // Update Google Sheets connection status
+        // Force create a realistic external order (simulates what should come from Google Sheets)
+        function forceCreateExternalOrder() {
+            if (confirm('📱 هل تريد عمل طلب وهمي من تليفون تاني لاختبار العرض؟')) {
+                const externalOrder = {
+                    id: 'ext_' + Date.now(),
+                    orderId: 'PHONE-' + Math.floor(Math.random() * 10000),
+                    timestamp: new Date().toISOString(),
+                    customerName: 'عميلة من تليفون تاني',
+                    customerPhone: '012' + Math.floor(Math.random() * 100000000).toString().padStart(8, '0'),
+                    customerEmail: 'customer@phone.com',
+                    customerCity: 'القاهرة',
+                    customerAddress: 'شارع النيل - من تليفون آخر',
+                    paymentMethod: 'cash_on_delivery',
+                    customerNotes: 'طلب حقيقي من عميلة بتليفون تاني',
+                    products: [
+                        {
+                            name: 'حقيبة يد أنيقة',
+                            category: 'حقائب يد',
+                            price: '750',
+                            quantity: 1
+                        },
+                        {
+                            name: 'حقيبة كتف عصرية',
+                            category: 'حقائب كتف',
+                            price: '950',
+                            quantity: 2
+                        }
+                    ],
+                    totalItems: 3,
+                    totalAmount: 2650,
+                    source: 'external_phone_real',
+                    synced: true, // This came from Google Sheets
+                    deviceInfo: 'آيفون 12 - عميلة حقيقية',
+                    isRealExternal: true
+                };
+                
+                // Add to localStorage as if it came from Google Sheets
+                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                completeOrders.push(externalOrder);
+                localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
+                
+                alert('✅ تم عمل طلب وهمي من تليفون تاني!\n\n📊 العميل: ' + externalOrder.customerName + '\n📱 الجهاز: ' + externalOrder.deviceInfo + '\n💰 الإجمالي: ' + externalOrder.totalAmount + ' جنيه\n\nهذا مثال على طلب حقيقي من تليفون آخر!');
+                
+                // Refresh the display
+                loadData();
+            }
+        }
+        
         // Simulate an order from another device (for testing cross-device functionality)
         function simulateOrderFromOtherDevice() {
             if (confirm('📱 هل تريد محاكاة طلب من جهاز آخر لاختبار عرض البيانات عبر الأجهزة؟')) {

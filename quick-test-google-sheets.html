@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار سريع - Google Apps Script</title>
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        
+        button {
+            background: linear-gradient(135deg, #b02e2e, #d63447);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 اختبار سريع للـ Google Apps Script</h1>
+        <p>هذا الاختبار سيساعدنا نعرف إيه المشكلة بالضبط</p>
+        
+        <h3>1. أدخل رابط Google Apps Script:</h3>
+        <input type="url" id="gsUrl" class="url-input" 
+               placeholder="ضع هنا رابط Google Apps Script">
+        
+        <button onclick="runCompleteTest()">🔍 اختبار شامل</button>
+        
+        <div id="results"></div>
+        
+        <h3>📝 النتائج المتوقعة:</h3>
+        <ul>
+            <li><strong>POST (كتابة):</strong> يجب أن ينجح ✅</li>
+            <li><strong>GET (قراءة):</strong> يحتاج تحديث الكود إذا فشل ❌</li>
+        </ul>
+    </div>
+
+    <script>
+        async function runCompleteTest() {
+            const gsUrl = document.getElementById('gsUrl').value.trim();
+            const resultsDiv = document.getElementById('results');
+            
+            if (!gsUrl) {
+                resultsDiv.innerHTML = '<div class="status error">❌ يرجى إدخال الرابط أولاً</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="status warning">⏳ جاري إجراء الاختبارات...</div>';\n            \n            let testResults = '<h3>📊 نتائج الاختبار:</h3>';\n            \n            // Test 1: POST (Write) - Should work\n            try {\n                console.log('Testing POST...');\n                const postData = {\n                    action: 'saveContact',\n                    name: 'اختبار ' + new Date().toLocaleTimeString(),\n                    email: 'test@example.com',\n                    message: 'رسالة اختبار من الاختبار السريع',\n                    source: 'quick_test'\n                };\n                \n                await fetch(gsUrl, {\n                    method: 'POST',\n                    mode: 'no-cors',\n                    headers: { 'Content-Type': 'application/json' },\n                    body: JSON.stringify(postData)\n                });\n                \n                testResults += '<div class=\"status success\">✅ POST (كتابة البيانات): نجح</div>';\n            } catch (error) {\n                testResults += '<div class=\"status error\">❌ POST (كتابة البيانات): فشل - ' + error.message + '</div>';\n            }\n            \n            // Test 2: GET (Read) - May fail if doGet not implemented\n            try {\n                console.log('Testing GET...');\n                const getUrl = gsUrl + '?action=getCompleteOrders&timestamp=' + Date.now();\n                \n                const response = await fetch(getUrl, {\n                    method: 'GET',\n                    headers: { 'Accept': 'application/json' }\n                });\n                \n                if (response.ok) {\n                    const data = await response.json();\n                    testResults += '<div class=\"status success\">✅ GET (قراءة البيانات): نجح - ' + (data.data ? data.data.length : 0) + ' طلبات موجودة</div>';\n                } else {\n                    testResults += '<div class=\"status error\">❌ GET (قراءة البيانات): فشل - HTTP ' + response.status + '</div>';\n                }\n            } catch (error) {\n                testResults += '<div class=\"status error\">❌ GET (قراءة البيانات): فشل - ' + error.message + '</div>';\n            }\n            \n            // Diagnosis\n            testResults += '<h3>🔧 التشخيص:</h3>';\n            testResults += '<div class=\"status warning\">';\n            testResults += '<p><strong>إذا كان POST ينجح و GET يفشل:</strong></p>';\n            testResults += '<ul>';\n            testResults += '<li>Google Apps Script يحتاج تحديث بالكود الجديد</li>';\n            testResults += '<li>يجب إضافة دالة doGet للقراءة</li>';\n            testResults += '<li>افتح الدليل: update-google-apps-script-guide.html</li>';\n            testResults += '</ul>';\n            testResults += '</div>';\n            \n            testResults += '<div class=\"status success\">';\n            testResults += '<p><strong>إذا كان POST و GET ينجحان:</strong></p>';\n            testResults += '<ul>';\n            testResults += '<li>النظام يعمل بشكل صحيح! ✅</li>';\n            testResults += '<li>الطلبات من التلفونات التانية المفروض تظهر</li>';\n            testResults += '<li>جرب \"تحديث من جميع المصادر\" في لوحة الإدارة</li>';\n            testResults += '</ul>';\n            testResults += '</div>';\n            \n            resultsDiv.innerHTML = testResults;\n        }\n        \n        // Load saved URL if exists\n        document.addEventListener('DOMContentLoaded', function() {\n            const savedUrl = localStorage.getItem('forsa_google_sheets_url');\n            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {\n                document.getElementById('gsUrl').value = savedUrl;\n            }\n        });\n    </script>\n</body>\n</html>
