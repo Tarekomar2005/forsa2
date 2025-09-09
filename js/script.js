@@ -848,7 +848,7 @@ function viewLocalOrders() {
     const quickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
     
     if (completeOrders.length === 0 && quickOrders.length === 0) {
-        alert('لا توجد طلبات محفوظة محلياً.');
+        showNotification('لا توجد طلبات محفوظة محلياً. قم بإضافة منتجات وإتمام طلب أولاً!', 'warning');
         return;
     }
     
@@ -858,15 +858,21 @@ function viewLocalOrders() {
     if (completeOrders.length > 0) {
         ordersList += '🛍️ الطلبات الكاملة: ' + completeOrders.length + '\n';
         completeOrders.slice(-3).forEach(order => {
-            ordersList += `• ${order.orderId}: ${order.customer.name} - ${order.totals.totalAmount} جنيه\n`;
+            // Check both possible data structures
+            const customerName = order.customer ? order.customer.name : order.customerName;
+            const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount;
+            const productCount = order.products ? order.products.length : 'غير محدد';
+            
+            ordersList += `• ${order.orderId}: ${customerName} - ${totalAmount} جنيه (${productCount} منتج)\n`;
         });
         ordersList += '\n';
     }
     
-    // Show quick orders  
-    if (quickOrders.length > 0) {
-        ordersList += '⚡ الطلبات السريعة: ' + quickOrders.length + '\n';
-        quickOrders.slice(-3).forEach(order => {
+    // Show quick orders (filter out complete order items)
+    const actualQuickOrders = quickOrders.filter(order => order.orderType !== 'complete_order');
+    if (actualQuickOrders.length > 0) {
+        ordersList += '⚡ الطلبات السريعة: ' + actualQuickOrders.length + '\n';
+        actualQuickOrders.slice(-3).forEach(order => {
             ordersList += `• ${order.productName} - ${order.customerName || 'غير محدد'}\n`;
         });
     }
@@ -874,6 +880,7 @@ function viewLocalOrders() {
     ordersList += '\n📁 لعرض التفاصيل الكاملة، افتح admin-panel.html';
     
     alert(ordersList);
+    showNotification('📈 تم عرض الطلبات المحفوظة! للتفاصيل الكاملة افتح لوحة الإدارة', 'success');
 }
 
 // Add keyboard shortcut to view orders (Ctrl+Alt+O)
@@ -1134,11 +1141,23 @@ async function saveCompleteOrderToGoogleSheets(orderData) {
 // Save complete order to local storage
 function saveCompleteOrderToLocalStorage(orderData) {
     try {
-        // Save to complete orders list
+        // Save to complete orders list with flattened structure for admin panel compatibility
         const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
         const newCompleteOrder = {
-            ...orderData,
             id: Date.now(),
+            orderId: orderData.orderId,
+            timestamp: orderData.timestamp,
+            customerName: orderData.customer.name,
+            customerPhone: orderData.customer.phone,
+            customerEmail: orderData.customer.email,
+            customerCity: orderData.customer.city,
+            customerAddress: orderData.customer.address,
+            paymentMethod: orderData.customer.paymentMethod,
+            customerNotes: orderData.customer.notes,
+            products: orderData.products,
+            totalItems: orderData.totals.totalItems,
+            totalAmount: orderData.totals.totalAmount,
+            source: orderData.source,
             synced: false
         };
         
