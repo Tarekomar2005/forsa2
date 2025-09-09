@@ -733,18 +733,6 @@ function getPaymentMethodText(method) {
     return methods[method] || method;
 }
 
-// Open Admin Panel function
-function openAdminPanel() {
-    const adminUrl = window.location.origin + window.location.pathname.replace('index.html', 'admin-panel.html');
-    const newWindow = window.open(adminUrl, '_blank');
-    
-    if (newWindow) {
-        showNotification('📈 تم فتح لوحة إدارة الطلبات في نافذة جديدة', 'success');
-    } else {
-        showNotification('تعذر فتح لوحة الإدارة. يرجى السماح بالنوافذ المنبثقة', 'error');
-    }
-}
-
 // Update saved orders count display
 function updateSavedOrdersCount() {
     const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');

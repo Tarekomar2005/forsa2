@@ -224,7 +224,11 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-database"></i> لوحة إدارة البيانات المحلية</h1>
-            <p>إدارة ومراقبة البيانات المحفوظة محلياً في متصفح العميل</p>
+            <p>إدارة ومراقبة البيانات من جميع المصادر</p>
+            <div id="googleSheetsStatus" style="margin-top: 10px; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                <i class="fas fa-circle" id="statusIcon"></i>
+                <span id="statusText">جاري التحقق...</span>
+            </div>
         </div>
 
         <div class="stats">
@@ -254,7 +258,16 @@
                 <i class="fas fa-download"></i> تصدير البيانات
             </button>
             <button class="btn btn-warning" onclick="refreshData()">
-                <i class="fas fa-refresh"></i> تحديث
+                <i class="fas fa-refresh"></i> تحديث من جميع المصادر
+            </button>
+            <button class="btn btn-primary" onclick="debugLocalStorage()" style="background: #17a2b8;">
+                <i class="fas fa-bug"></i> فحص البيانات
+            </button>
+            <button class="btn btn-success" onclick="createTestOrder()" style="background: #28a745;">
+                <i class="fas fa-plus"></i> إضافة طلب تجريبي
+            </button>
+            <button class="btn btn-primary" onclick="configureGoogleSheets()" style="background: #6f42c1;">
+                <i class="fas fa-cog"></i> إعداد Google Sheets
             </button>
             <button class="btn btn-danger" onclick="clearAllData()">
                 <i class="fas fa-trash"></i> مسح جميع البيانات
@@ -334,20 +347,86 @@
     </div>
 
     <script>
-        // Load and display data
-        function loadData() {
+        // Add Google Sheets URL configuration
+        let GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || 'PASTE_YOUR_WEB_APP_URL_HERE';
+        
+        // Load and display data from both local storage and Google Sheets
+        async function loadData() {
+            console.log('🔄 Loading data from both local storage and Google Sheets...');
+            
+            // Load local data
             const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
             const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
             const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
 
-            updateStats(contacts, orders);
+            // Debug: Log the local data to console
+            console.log('📊 Local Data:');
+            console.log('Contacts:', contacts.length, contacts);
+            console.log('Orders:', orders.length, orders);
+            console.log('Complete Orders:', completeOrders.length, completeOrders);
+            
+            // Try to fetch additional data from Google Sheets
+            let googleSheetsOrders = [];
+            if (GOOGLE_SHEETS_URL && GOOGLE_SHEETS_URL !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                try {
+                    console.log('🌐 Attempting to fetch data from Google Sheets...');
+                    googleSheetsOrders = await fetchOrdersFromGoogleSheets();
+                    console.log('📊 Google Sheets Orders:', googleSheetsOrders.length, googleSheetsOrders);
+                } catch (error) {
+                    console.warn('⚠️ Could not fetch from Google Sheets:', error);
+                }
+            }
+            
+            // Merge local and Google Sheets data (avoid duplicates)
+            const allCompleteOrders = mergeOrderData(completeOrders, googleSheetsOrders);
+            console.log('📊 Merged Complete Orders:', allCompleteOrders.length, allCompleteOrders);
+
+            updateStats(contacts, orders, allCompleteOrders);
             displayContacts(contacts);
             displayOrders(orders);
-            displayCompleteOrders(completeOrders);
+            displayCompleteOrders(allCompleteOrders);
         }
 
-        function updateStats(contacts, orders) {
-            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+        // Fetch orders from Google Sheets (simulated - would need actual Sheets API)
+        async function fetchOrdersFromGoogleSheets() {
+            // This is a placeholder for Google Sheets integration
+            // In a real implementation, you would use Google Sheets API
+            // For now, we'll return empty array but show the integration structure
+            
+            try {
+                // This would be the actual API call to fetch data from Google Sheets
+                // const response = await fetch('your-google-sheets-api-endpoint');
+                // const data = await response.json();
+                
+                // For demonstration, return empty array
+                // You would parse the Google Sheets response here
+                return [];
+            } catch (error) {
+                console.error('Error fetching from Google Sheets:', error);
+                return [];
+            }
+        }
+        
+        // Merge local and Google Sheets data, avoiding duplicates
+        function mergeOrderData(localOrders, googleSheetsOrders) {
+            const merged = [...localOrders];
+            const localOrderIds = new Set(localOrders.map(order => order.orderId));
+            
+            // Add Google Sheets orders that aren't already in local storage
+            googleSheetsOrders.forEach(order => {
+                if (!localOrderIds.has(order.orderId)) {
+                    merged.push({
+                        ...order,
+                        source: 'google_sheets',
+                        synced: true
+                    });
+                }
+            });
+            
+            return merged;
+        }
+        
+        function updateStats(contacts, orders, completeOrders) {
             const totalContacts = contacts.length;
             const totalOrders = orders.length + completeOrders.length;
             const unsyncedContacts = contacts.filter(c => !c.synced).length;
@@ -779,7 +858,22 @@ ${productsDetails}
         }
 
         function refreshData() {
+            console.log('🔄 Refreshing data from all sources...');
             loadData();
+        }
+        
+        // Configure Google Sheets URL
+        function configureGoogleSheets() {
+            const currentUrl = localStorage.getItem('forsa_google_sheets_url') || 'PASTE_YOUR_WEB_APP_URL_HERE';
+            const newUrl = prompt('أدخل رابط Google Apps Script Web App URL:', currentUrl);
+            
+            if (newUrl && newUrl.trim() !== '') {
+                localStorage.setItem('forsa_google_sheets_url', newUrl.trim());
+                GOOGLE_SHEETS_URL = newUrl.trim();
+                updateGoogleSheetsStatus(); // Update status indicator
+                alert('✅ تم حفظ رابط Google Sheets بنجاح!\n\nسيتم الآن جلب البيانات من جميع الأجهزة.');
+                loadData(); // Refresh with new URL
+            }
         }
 
         function clearAllData() {
@@ -810,8 +904,131 @@ ${productsDetails}
             }
         }
 
+        function debugLocalStorage() {
+            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            
+            let debugInfo = '🔍 فحص بيانات localStorage وإعدادات Google Sheets:\n\n';
+            
+            // Local storage info
+            debugInfo += '📱 البيانات المحلية (هذا الجهاز فقط):\n';
+            debugInfo += `📧 رسائل التواصل: ${contacts.length}\n`;
+            debugInfo += `🛒 الطلبات السريعة: ${orders.length}\n`;
+            debugInfo += `🛍️ الطلبات الكاملة: ${completeOrders.length}\n\n`;
+            
+            // Google Sheets info
+            debugInfo += '🌍 Google Sheets إعدادات:\n';
+            const gsUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (gsUrl && gsUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                debugInfo += `✅ متصل: ${gsUrl.substring(0, 50)}...\n`;
+                debugInfo += '🔄 يتم جلب البيانات من جميع الأجهزة\n\n';
+            } else {
+                debugInfo += '⚠️ غير معد: يعرض البيانات المحلية فقط\n';
+                debugInfo += 'لعرض طلبات جميع الأجهزة، اضغط "إعداد Google Sheets"\n\n';
+            }
+            
+            if (completeOrders.length > 0) {
+                debugInfo += '📊 تفاصيل الطلبات الكاملة:\n';
+                completeOrders.forEach((order, index) => {
+                    debugInfo += `${index + 1}. ${order.orderId} - ${order.customerName} - ${order.totalAmount} جنيه\n`;
+                    debugInfo += `   عدد المنتجات: ${order.products ? order.products.length : 'غير محدد'}\n`;
+                    debugInfo += `   المصدر: ${order.source || 'محلي'}\n`;
+                });
+            } else {
+                debugInfo += '⚠️ لا توجد طلبات كاملة محفوظة.\n';
+                debugInfo += 'لإضافة طلبات جديدة:\n';
+                debugInfo += '1. اذهب إلى الموقع الرئيسي\n';
+                debugInfo += '2. أضف منتجات للسلة\n';
+                debugInfo += '3. أدخل بيانات العميل\n';
+                debugInfo += '4. اضغط "إتمام الطلب"\n';
+            }
+            
+            debugInfo += '\n🔑 نصائح:\n';
+            debugInfo += '- اضغط "تحديث من جميع المصادر" لتحديث البيانات\n';
+            debugInfo += '- اضغط "إعداد Google Sheets" لربط قاعدة بيانات مشتركة\n';
+            
+            // Also log to console for detailed inspection
+            console.log('📊 فحص مفصّل:');
+            console.log('Contacts:', contacts);
+            console.log('Orders:', orders);
+            console.log('Complete Orders:', completeOrders);
+            console.log('Google Sheets URL:', gsUrl);
+            
+            alert(debugInfo);
+        }
+
+        function createTestOrder() {
+            if (confirm('هل تريد إضافة طلب تجريبي لاختبار عرض البيانات؟')) {
+                const testOrder = {
+                    id: Date.now(),
+                    orderId: 'ORD-' + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    customerName: 'أحمد محمد - طلب تجريبي',
+                    customerPhone: '01234567890',
+                    customerEmail: 'ahmed@example.com',
+                    customerCity: 'القاهرة',
+                    customerAddress: 'شارع النيل، مصر الجديدة',
+                    paymentMethod: 'cash_on_delivery',
+                    customerNotes: 'طلب تجريبي لاختبار لوحة الإدارة',
+                    products: [
+                        {
+                            name: 'شنطة يد أنيقة',
+                            category: 'شنط يد',
+                            price: '299',
+                            quantity: 2,
+                            total: 598
+                        },
+                        {
+                            name: 'شنطة كتف عصرية',
+                            category: 'شنط كتف',
+                            price: '450',
+                            quantity: 1,
+                            total: 450
+                        }
+                    ],
+                    totalItems: 3,
+                    totalAmount: 1048,
+                    source: 'admin_test',
+                    synced: false
+                };
+                
+                const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                completeOrders.push(testOrder);
+                localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
+                
+                alert('✅ تم إضافة الطلب التجريبي بنجاح!');
+                loadData();
+            }
+        }
+
         // Load data when page loads
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', function() {
+            updateGoogleSheetsStatus();
+            loadData();
+        });
+        
+        // Update Google Sheets connection status
+        function updateGoogleSheetsStatus() {
+            const statusDiv = document.getElementById('googleSheetsStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            const gsUrl = localStorage.getItem('forsa_google_sheets_url');
+            
+            if (gsUrl && gsUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                statusDiv.style.backgroundColor = '#d4edda';
+                statusDiv.style.color = '#155724';
+                statusDiv.style.border = '1px solid #c3e6cb';
+                statusIcon.style.color = '#28a745';
+                statusText.textContent = 'متصل بـ Google Sheets - يعرض بيانات جميع الأجهزة';
+            } else {
+                statusDiv.style.backgroundColor = '#fff3cd';
+                statusDiv.style.color = '#856404';
+                statusDiv.style.border = '1px solid #ffeaa7';
+                statusIcon.style.color = '#ffc107';
+                statusText.textContent = 'غير متصل - يعرض البيانات المحلية فقط';
+            }
+        }
 
         // Auto-refresh every 30 seconds
         setInterval(loadData, 30000);

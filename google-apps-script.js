@@ -119,9 +119,9 @@ function handleContactSubmission(data) {
   }
 }
 
-// ============================================
-// ORDER HANDLER
-// ============================================
+// ===========================================
+// ORDER HANDLER                                                                                                       
+// ===========================================
 
 function handleOrderSubmission(data) {
   try {
