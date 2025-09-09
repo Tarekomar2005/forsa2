@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -32,6 +33,12 @@
                     <a href="#contact" class="nav-link">اتصل بنا</a>
                 </li>
                 <li class="nav-item">
+                    <button class="cart-btn" onclick="toggleCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                </li>
+                <li class="nav-item">
                     <a href="#collection" class="nav-cta">💼 تسوق الآن</a>
                 </li>
             </ul>
@@ -43,7 +50,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-container">
             <div class="hero-content">
@@ -51,7 +57,7 @@
                     <span class="highlight">Forsa</span> — حقيبتك.. هويتك
                 </h1>
                 <p class="hero-subtitle">شنط حريمي أنيقة وعملية تناسب كل إطلالة</p>
-                <p class="hero-description">اكتشفي مجموعتنا المتنوعة من الحقائب العصرية التي تجمع بين الأناقة والعملية</p>
+                <p class="hero-description">اكتشفي مجموعتنا المتنوعة من الحقائب العصرية التي تجمع بين الأناقة والعملية في تصاميم فريدة تعبر عن شخصيتك المميزة</p>
                 <div class="hero-buttons">
                     <a href="#collection" class="cta-button">🎀 تصفح الكوليكشن</a>
                     <a href="#contact" class="cta-button secondary">📲 تواصل معنا</a>
@@ -67,7 +73,7 @@
             <div class="products-grid">
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد كلاسيكية">
+                        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد كلاسيكية">
                         <button class="wishlist-btn" onclick="toggleWishlist(this)">
                             <i class="far fa-heart"></i>
                         </button>
@@ -77,7 +83,7 @@
                     </div>
                     <div class="product-info">
                         <p class="product-category">حقائب يد</p>
-                        <h3 class="product-name">حقيبة يد كلاسيكية</h3>
+                        <h3 class="product-name">حقيبة يد كلاسيكية فاخرة</h3>
                         <p class="product-price">850 جنيه</p>
                         <button class="product-btn">أضف للسلة</button>
                     </div>
@@ -85,7 +91,7 @@
 
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كروس عملية">
+                        <img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كروس عملية">
                         <button class="wishlist-btn" onclick="toggleWishlist(this)">
                             <i class="far fa-heart"></i>
                         </button>
@@ -95,7 +101,7 @@
                     </div>
                     <div class="product-info">
                         <p class="product-category">حقائب كروس</p>
-                        <h3 class="product-name">حقيبة كروس عملية</h3>
+                        <h3 class="product-name">حقيبة كروس عملية أنيقة</h3>
                         <p class="product-price">650 جنيه</p>
                         <button class="product-btn">أضف للسلة</button>
                     </div>
@@ -103,45 +109,127 @@
 
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة ظهر أنيقة">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة ظهر أنيقة">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
                     </div>
                     <div class="product-info">
-                        <h3 class="product-name">حقيبة ظهر أنيقة</h3>
+                        <p class="product-category">حقائب ظهر</p>
+                        <h3 class="product-name">حقيبة ظهر عصرية وعملية</h3>
                         <p class="product-price">750 جنيه</p>
-                        <button class="product-btn">اطلب الآن</button>
+                        <button class="product-btn">أضف للسلة</button>
                     </div>
                 </div>
 
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة سهرة فاخرة">
+                        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة سهرة فاخرة">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
                     </div>
                     <div class="product-info">
-                        <h3 class="product-name">حقيبة سهرة فاخرة</h3>
+                        <p class="product-category">حقائب سهرة</p>
+                        <h3 class="product-name">حقيبة سهرة فاخرة مطرزة</h3>
                         <p class="product-price">950 جنيه</p>
-                        <button class="product-btn">اطلب الآن</button>
+                        <button class="product-btn">أضف للسلة</button>
                     </div>
                 </div>
 
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد عصرية">
+                        <img src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد عصرية">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
                     </div>
                     <div class="product-info">
-                        <h3 class="product-name">حقيبة يد عصرية</h3>
+                        <p class="product-category">حقائب يد</p>
+                        <h3 class="product-name">حقيبة يد عصرية متعددة الألوان</h3>
                         <p class="product-price">700 جنيه</p>
-                        <button class="product-btn">اطلب الآن</button>
+                        <button class="product-btn">أضف للسلة</button>
                     </div>
                 </div>
 
                 <div class="product-card">
                     <div class="product-image">
-                        <img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كتف أنيقة">
+                        <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة كتف أنيقة">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
                     </div>
                     <div class="product-info">
-                        <h3 class="product-name">حقيبة كتف أنيقة</h3>
+                        <p class="product-category">حقائب كتف</p>
+                        <h3 class="product-name">حقيبة كتف أنيقة وعملية</h3>
                         <p class="product-price">600 جنيه</p>
-                        <button class="product-btn">اطلب الآن</button>
+                        <button class="product-btn">أضف للسلة</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة يد فاخرة">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">حقائب يد</p>
+                        <h3 class="product-name">حقيبة يد فاخرة بتصميم حديث</h3>
+                        <p class="product-price">1200 جنيه</p>
+                        <button class="product-btn">أضف للسلة</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة عمل عصرية">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">حقائب عمل</p>
+                        <h3 class="product-name">حقيبة عمل عصرية متعددة الجيوب</h3>
+                        <p class="product-price">550 جنيه</p>
+                        <button class="product-btn">أضف للسلة</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="حقيبة سفر أنيقة">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this)">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <div class="product-overlay">
+                            <button class="quick-order-btn">اطلب الآن</button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <p class="product-category">حقائب سفر</p>
+                        <h3 class="product-name">حقيبة سفر أنيقة وعملية</h3>
+                        <p class="product-price">800 جنيه</p>
+                        <button class="product-btn">أضف للسلة</button>
                     </div>
                 </div>
             </div>
@@ -178,7 +266,7 @@
                     </div>
                 </div>
                 <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="About Forsa">
+                    <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="About Forsa - حرفية في صناعة الحقائب">
                 </div>
             </div>
         </div>
@@ -250,6 +338,119 @@
             </div>
         </div>
     </footer>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>سلة التسوق</h3>
+            <button class="cart-close" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <p>السلة فارغة</p>
+                <span>أضف بعض المنتجات إلى سلتك</span>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>إجمالي المبلغ: <strong id="cartTotal">0 جنيه</strong></span>
+            </div>
+            <div class="cart-actions">
+                <button class="customer-info-btn" onclick="showCustomerForm()">
+                    <i class="fas fa-user"></i>
+                    بيانات العميل
+                </button>
+                <button class="export-excel-btn" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i>
+                    تصدير Excel
+                </button>
+                <button class="checkout-btn" onclick="proceedToCheckout()">
+                    <i class="fas fa-credit-card"></i>
+                    إتمام الطلب
+                </button>
+                <button class="clear-cart-btn" onclick="clearCart()">
+                    <i class="fas fa-trash"></i>
+                    إفراغ السلة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+    <!-- Customer Information Modal -->
+    <div class="modal-overlay" id="customerModalOverlay">
+        <div class="customer-modal" id="customerModal">
+            <div class="modal-header">
+                <h3>بيانات العميل</h3>
+                <button class="modal-close" onclick="hideCustomerForm()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerName">الاسم بالكامل *</label>
+                            <input type="text" id="customerName" name="customerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">رقم الهاتف *</label>
+                            <input type="tel" id="customerPhone" name="customerPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerEmail">البريد الإلكتروني</label>
+                            <input type="email" id="customerEmail" name="customerEmail">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerCity">المحافظة/المدينة *</label>
+                            <input type="text" id="customerCity" name="customerCity" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerAddress">العنوان بالتفصيل *</label>
+                        <textarea id="customerAddress" name="customerAddress" rows="3" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="paymentMethod">طريقة الدفع *</label>
+                            <select id="paymentMethod" name="paymentMethod" required>
+                                <option value="">اختر طريقة الدفع</option>
+                                <option value="cash_on_delivery">دفع عند الاستلام</option>
+                                <option value="bank_transfer">حوالة بنكية</option>
+                                <option value="vodafone_cash">فودافون كاش</option>
+                                <option value="orange_money">أورانج مني</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="orderDate">تاريخ الطلب</label>
+                            <input type="date" id="orderDate" name="orderDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerNotes">ملاحظات إضافية</label>
+                        <textarea id="customerNotes" name="customerNotes" rows="2" placeholder="أي ملاحظات أو طلبات خاصة..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="save-customer-btn" onclick="saveCustomerInfo()">
+                    <i class="fas fa-save"></i>
+                    حفظ البيانات
+                </button>
+                <button class="cancel-btn" onclick="hideCustomerForm()">
+                    <i class="fas fa-times"></i>
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/script.js"></script>
 </body>

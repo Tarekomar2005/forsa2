@@ -118,33 +118,27 @@ function toggleWishlist(button) {
 
 // Enhanced product order functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle main product buttons
+    // Handle main product buttons (Add to Cart)
     document.querySelectorAll('.product-btn').forEach(button => {
         button.addEventListener('click', function() {
             const productCard = this.closest('.product-card');
             const productName = productCard.querySelector('.product-name').textContent;
             const productPrice = productCard.querySelector('.product-price').textContent;
+            const productImage = productCard.querySelector('.product-image img').src;
+            const productCategory = productCard.querySelector('.product-category').textContent;
             
             // Add to cart animation
             this.innerHTML = '<div class="loading"></div> جاري الإضافة...';
             this.disabled = true;
             
             setTimeout(() => {
-                this.innerHTML = 'تم الإضافة ✓';
-                this.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
-                
-                setTimeout(() => {
-                    this.innerHTML = 'أضف للسلة';
-                    this.style.background = '';
-                    this.disabled = false;
-                }, 2000);
+                addToCart(productName, productPrice, productImage, productCategory);
+                this.disabled = false;
             }, 1000);
-            
-            showNotification(`تم إضافة ${productName} إلى السلة`);
         });
     });
     
-    // Handle quick order buttons
+    // Handle quick order buttons (Direct to WhatsApp)
     document.querySelectorAll('.quick-order-btn').forEach(button => {
         button.addEventListener('click', function() {
             const productCard = this.closest('.product-card');
@@ -409,4 +403,324 @@ document.addEventListener('DOMContentLoaded', function() {
             behavior: 'smooth'
         });
     });
+    
+    // Initialize cart
+    updateCartDisplay();
 });
+
+// Shopping Cart Functionality
+let cart = JSON.parse(localStorage.getItem('forsaCart')) || [];
+
+function toggleCart() {
+    const cartSidebar = document.getElementById('cartSidebar');
+    const cartOverlay = document.getElementById('cartOverlay');
+    
+    cartSidebar.classList.toggle('active');
+    cartOverlay.classList.toggle('active');
+    
+    if (cartSidebar.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+function addToCart(productName, productPrice, productImage, productCategory) {
+    const price = parseInt(productPrice.replace(/[^0-9]/g, ''));
+    
+    // Check if item already exists in cart
+    const existingItem = cart.find(item => item.name === productName);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+        showNotification(`تم زيادة كمية ${productName} في السلة`);
+    } else {
+        cart.push({
+            id: Date.now(),
+            name: productName,
+            price: price,
+            image: productImage,
+            category: productCategory,
+            quantity: 1
+        });
+        showNotification(`تم إضافة ${productName} إلى السلة`);
+    }
+    
+    saveCart();
+    updateCartDisplay();
+    updateCartUI();
+}
+
+function removeFromCart(productId) {
+    cart = cart.filter(item => item.id !== productId);
+    saveCart();
+    updateCartDisplay();
+    updateCartUI();
+    showNotification('تم إزالة المنتج من السلة');
+}
+
+function updateQuantity(productId, change) {
+    const item = cart.find(item => item.id === productId);
+    if (item) {
+        item.quantity += change;
+        if (item.quantity <= 0) {
+            removeFromCart(productId);
+            return;
+        }
+        saveCart();
+        updateCartDisplay();
+        updateCartUI();
+    }
+}
+
+function clearCart() {
+    if (cart.length === 0) {
+        showNotification('السلة فارغة بالفعل', 'error');
+        return;
+    }
+    
+    if (confirm('هل أنت متأكد من إفراغ السلة؟')) {
+        cart = [];
+        saveCart();
+        updateCartDisplay();
+        updateCartUI();
+        showNotification('تم إفراغ السلة بنجاح');
+    }
+}
+
+function saveCart() {
+    localStorage.setItem('forsaCart', JSON.stringify(cart));
+}
+
+function updateCartDisplay() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Update cart count
+    cartCount.textContent = totalItems;
+    cartCount.classList.toggle('hidden', totalItems === 0);
+    
+    // Update cart total
+    cartTotal.textContent = `${totalPrice} جنيه`;
+    
+    // Update cart items
+    if (cart.length === 0) {
+        cartItems.innerHTML = `
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <p>السلة فارغة</p>
+                <span>أضف بعض المنتجات إلى سلتك</span>
+            </div>
+        `;
+    } else {
+        cartItems.innerHTML = cart.map(item => `
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                <div class="cart-item-details">
+                    <h4>${item.name}</h4>
+                    <div class="item-price">${item.price} جنيه</div>
+                    <div class="cart-item-quantity">
+                        <button onclick="updateQuantity(${item.id}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, 1)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="cart-item-remove" onclick="removeFromCart(${item.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+}
+
+function updateCartUI() {
+    // Update product buttons based on cart status
+    document.querySelectorAll('.product-btn').forEach(button => {
+        const productCard = button.closest('.product-card');
+        const productName = productCard.querySelector('.product-name').textContent;
+        const cartItem = cart.find(item => item.name === productName);
+        
+        if (cartItem) {
+            button.innerHTML = `في السلة (${cartItem.quantity})`;
+            button.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+        } else {
+            button.innerHTML = 'أضف للسلة';
+            button.style.background = '';
+        }
+    });
+}
+
+function proceedToCheckout() {
+    if (cart.length === 0) {
+        showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
+        return;
+    }
+    
+    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let orderMessage = 'مرحباً! أريد طلب المنتجات التالية:\n\n';
+    
+    cart.forEach((item, index) => {
+        orderMessage += `${index + 1}. ${item.name}\nالكمية: ${item.quantity}\nالسعر: ${item.price * item.quantity} جنيه\n\n`;
+    });
+    
+    orderMessage += `إجمالي المبلغ: ${totalPrice} جنيه`;
+    
+    const whatsappURL = `https://wa.me/201234567890?text=${encodeURIComponent(orderMessage)}`;
+    window.open(whatsappURL, '_blank');
+    
+    showNotification('جاري تحويلك للواتساب لإتمام الطلب...');
+}
+
+// Customer Information Management
+let customerInfo = JSON.parse(localStorage.getItem('forsaCustomerInfo')) || {};
+
+function showCustomerForm() {
+    const modal = document.getElementById('customerModalOverlay');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Set today's date as default
+    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+    
+    // Load saved customer info if exists
+    if (customerInfo.name) {
+        document.getElementById('customerName').value = customerInfo.name || '';
+        document.getElementById('customerPhone').value = customerInfo.phone || '';
+        document.getElementById('customerEmail').value = customerInfo.email || '';
+        document.getElementById('customerCity').value = customerInfo.city || '';
+        document.getElementById('customerAddress').value = customerInfo.address || '';
+        document.getElementById('paymentMethod').value = customerInfo.paymentMethod || '';
+        document.getElementById('customerNotes').value = customerInfo.notes || '';
+    }
+}
+
+function hideCustomerForm() {
+    const modal = document.getElementById('customerModalOverlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function saveCustomerInfo() {
+    const form = document.getElementById('customerForm');
+    
+    // Validate required fields
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Save customer information
+    customerInfo = {
+        name: document.getElementById('customerName').value,
+        phone: document.getElementById('customerPhone').value,
+        email: document.getElementById('customerEmail').value,
+        city: document.getElementById('customerCity').value,
+        address: document.getElementById('customerAddress').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        orderDate: document.getElementById('orderDate').value,
+        notes: document.getElementById('customerNotes').value,
+        savedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('forsaCustomerInfo', JSON.stringify(customerInfo));
+    
+    hideCustomerForm();
+    showNotification('تم حفظ بيانات العميل بنجاح!');
+}
+
+// Excel Export Functionality
+function exportToExcel() {
+    if (cart.length === 0) {
+        showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
+        return;
+    }
+    
+    if (!customerInfo.name) {
+        showNotification('يجب إدخال بيانات العميل أولاً', 'error');
+        showCustomerForm();
+        return;
+    }
+    
+    try {
+        // Create workbook and worksheets
+        const workbook = XLSX.utils.book_new();
+        
+        // Customer Information Sheet
+        const customerData = [
+            ['بيانات العميل', ''],
+            ['الاسم', customerInfo.name],
+            ['رقم الهاتف', customerInfo.phone],
+            ['البريد الإلكتروني', customerInfo.email || '-'],
+            ['المحافظة/المدينة', customerInfo.city],
+            ['العنوان', customerInfo.address],
+            ['طريقة الدفع', getPaymentMethodText(customerInfo.paymentMethod)],
+            ['تاريخ الطلب', customerInfo.orderDate || new Date().toISOString().split('T')[0]],
+            ['ملاحظات', customerInfo.notes || '-'],
+            ['', ''],
+            ['تاريخ التصدير', new Date().toLocaleString('ar-EG')]
+        ];
+        
+        const customerSheet = XLSX.utils.aoa_to_sheet(customerData);
+        
+        // Products Sheet
+        const productsData = [
+            ['المنتجات المطلوبة', '', '', '', ''],
+            ['رقم', 'اسم المنتج', 'الفئة', 'الكمية', 'السعر الإجمالي']
+        ];
+        
+        let totalAmount = 0;
+        cart.forEach((item, index) => {
+            const totalPrice = item.price * item.quantity;
+            totalAmount += totalPrice;
+            productsData.push([
+                index + 1,
+                item.name,
+                item.category,
+                item.quantity,
+                `${totalPrice} جنيه`
+            ]);
+        });
+        
+        // Add total row
+        productsData.push(['', '', '', '', '']);
+        productsData.push(['', '', '', 'الإجمالي:', `${totalAmount} جنيه`]);
+        
+        const productsSheet = XLSX.utils.aoa_to_sheet(productsData);
+        
+        // Add sheets to workbook
+        XLSX.utils.book_append_sheet(workbook, customerSheet, 'بيانات العميل');
+        XLSX.utils.book_append_sheet(workbook, productsSheet, 'المنتجات');
+        
+        // Generate filename with customer name and date
+        const fileName = `Forsa_Order_${customerInfo.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        
+        // Save file
+        XLSX.writeFile(workbook, fileName);
+        
+        showNotification('تم تصدير الطلب إلى Excel بنجاح!');
+        
+    } catch (error) {
+        console.error('Error exporting to Excel:', error);
+        showNotification('حدث خطأ أثناء تصدير Excel', 'error');
+    }
+}
+
+function getPaymentMethodText(method) {
+    const methods = {
+        'cash_on_delivery': 'دفع عند الاستلام',
+        'bank_transfer': 'حوالة بنكية',
+        'vodafone_cash': 'فودافون كاش',
+        'orange_money': 'أورانج مني'
+    };
+    return methods[method] || method;
+}
