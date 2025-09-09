@@ -318,9 +318,9 @@
                         <tr>
                             <th>رقم الطلب</th>
                             <th>التاريخ</th>
-                            <th>اسم العميل</th>
-                            <th>رقم الهاتف</th>
-                            <th>عدد المنتجات</th>
+                            <th>بيانات العميل</th>
+                            <th>عنوان التسليم</th>
+                            <th>المنتجات المختارة</th>
                             <th>الإجمالي</th>
                             <th>حالة المزامنة</th>
                             <th>الإجراءات</th>
@@ -452,29 +452,46 @@
                     `${product.name} (الكمية: ${product.quantity})`
                 ).join('، ');
                 
-                const productsPreview = productsList.length > 100 
-                    ? productsList.substring(0, 100) + '...' 
+                const productsPreview = productsList.length > 80 
+                    ? productsList.substring(0, 80) + '...' 
                     : productsList;
 
                 return `
                     <tr>
-                        <td>${order.orderId}</td>
+                        <td><strong>${order.orderId}</strong></td>
                         <td>${new Date(order.timestamp).toLocaleString('ar-EG')}</td>
-                        <td>${order.customerName}</td>
-                        <td>${order.customerPhone}</td>
-                        <td>${order.products.length}</td>
-                        <td>${order.totalAmount} جنيه</td>
+                        <td>
+                            <div style="margin-bottom: 5px;"><strong>${order.customerName}</strong></div>
+                            <div style="font-size: 11px; color: #666;">${order.customerPhone}</div>
+                            ${order.customerEmail ? `<div style="font-size: 10px; color: #888;">${order.customerEmail}</div>` : ''}
+                        </td>
+                        <td>
+                            <div style="font-size: 11px; line-height: 1.3;">${order.customerAddress || 'غير محدد'}</div>
+                            <div style="font-size: 10px; color: #666;">${order.customerCity || ''}</div>
+                        </td>
+                        <td>
+                            <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 10px; font-size: 11px;">
+                                ${order.products.length} منتج
+                            </span>
+                            <div style="font-size: 10px; color: #666; margin-top: 2px;" title="${productsList}">
+                                ${productsPreview}
+                            </div>
+                        </td>
+                        <td><strong>${order.totalAmount} جنيه</strong></td>
                         <td>
                             <span class="sync-status ${order.synced ? 'synced' : 'unsynced'}">
                                 ${order.synced ? 'مزامنة' : 'غير مزامنة'}
                             </span>
                         </td>
                         <td>
-                            <button class="btn btn-primary" onclick="viewOrderDetails('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">
-                                <i class="fas fa-eye"></i> عرض
+                            <button class="btn btn-primary" onclick="viewDetailedOrderInfo('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; margin-bottom: 3px; width: 100%;">
+                                <i class="fas fa-eye"></i> عرض التفاصيل
                             </button>
-                            <button class="btn btn-danger" onclick="deleteCompleteOrder('${order.orderId}')" style="padding: 5px 10px; font-size: 12px;">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-success" onclick="showCustomerProductsModal('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; margin-bottom: 3px; width: 100%;">
+                                <i class="fas fa-list"></i> العميل والمنتجات
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteCompleteOrder('${order.orderId}')" style="padding: 5px 10px; font-size: 12px; width: 100%;">
+                                <i class="fas fa-trash"></i> حذف
                             </button>
                         </td>
                     </tr>
@@ -482,7 +499,7 @@
             }).join('');
         }
 
-        function viewOrderDetails(orderId) {
+        function viewDetailedOrderInfo(orderId) {
             const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
             const order = completeOrders.find(o => o.orderId === orderId);
             
@@ -514,6 +531,188 @@ ${productsDetails}
             `;
 
             alert(orderDetails);
+        }
+
+        function showCustomerProductsModal(orderId) {
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            const order = completeOrders.find(o => o.orderId === orderId);
+            
+            if (!order) {
+                alert('لم يتم العثور على الطلب');
+                return;
+            }
+
+            // Create modal HTML
+            const modalHTML = `
+                <div id="customerProductsModal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.7);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <div style="
+                        background: white;
+                        border-radius: 15px;
+                        max-width: 900px;
+                        width: 90%;
+                        max-height: 90%;
+                        overflow-y: auto;
+                        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+                    ">
+                        <div style="
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            color: white;
+                            padding: 20px;
+                            border-radius: 15px 15px 0 0;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <h2 style="margin: 0;">👤 بيانات العميل والمنتجات</h2>
+                            <button onclick="closeCustomerModal()" style="
+                                background: rgba(255,255,255,0.2);
+                                border: none;
+                                border-radius: 50%;
+                                width: 40px;
+                                height: 40px;
+                                color: white;
+                                cursor: pointer;
+                                font-size: 18px;
+                            ">×</button>
+                        </div>
+                        
+                        <div style="padding: 25px;">
+                            <!-- Customer Information -->
+                            <div style="
+                                background: #f8f9fa;
+                                border-radius: 12px;
+                                padding: 20px;
+                                margin-bottom: 25px;
+                                border-right: 4px solid #667eea;
+                            ">
+                                <h3 style="color: #333; margin-bottom: 15px; display: flex; align-items: center;">
+                                    <i class="fas fa-user" style="margin-left: 10px; color: #667eea;"></i>
+                                    بيانات العميل
+                                </h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                    <div><strong>الاسم:</strong> ${order.customerName}</div>
+                                    <div><strong>رقم الهاتف:</strong> ${order.customerPhone}</div>
+                                    <div><strong>البريد الإلكتروني:</strong> ${order.customerEmail || 'غير محدد'}</div>
+                                    <div><strong>المدينة:</strong> ${order.customerCity || 'غير محدد'}</div>
+                                    <div style="grid-column: 1/-1;"><strong>عنوان التسليم:</strong> ${order.customerAddress || 'غير محدد'}</div>
+                                    <div><strong>طريقة الدفع:</strong> ${order.paymentMethod || 'غير محدد'}</div>
+                                    <div><strong>تاريخ الطلب:</strong> ${new Date(order.timestamp).toLocaleString('ar-EG')}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Products List -->
+                            <div style="
+                                background: #fff8e1;
+                                border-radius: 12px;
+                                padding: 20px;
+                                border-right: 4px solid #ff9800;
+                            ">
+                                <h3 style="color: #333; margin-bottom: 15px; display: flex; align-items: center;">
+                                    <i class="fas fa-shopping-bag" style="margin-left: 10px; color: #ff9800;"></i>
+                                    المنتجات المختارة (${order.products.length} منتج)
+                                </h3>
+                                <div style="display: grid; gap: 15px;">
+                                    ${order.products.map((product, index) => `
+                                        <div style="
+                                            background: white;
+                                            border-radius: 8px;
+                                            padding: 15px;
+                                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                            display: grid;
+                                            grid-template-columns: auto 1fr auto auto;
+                                            gap: 15px;
+                                            align-items: center;
+                                        ">
+                                            <div style="
+                                                background: #e3f2fd;
+                                                border-radius: 50%;
+                                                width: 35px;
+                                                height: 35px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                font-weight: bold;
+                                                color: #1976d2;
+                                            ">${index + 1}</div>
+                                            <div>
+                                                <div style="font-weight: bold; margin-bottom: 5px;">${product.name}</div>
+                                                <div style="font-size: 12px; color: #666;">فئة: ${product.category || 'غير محدد'}</div>
+                                            </div>
+                                            <div style="text-align: center;">
+                                                <div style="font-size: 12px; color: #666;">الكمية</div>
+                                                <div style="font-weight: bold; font-size: 18px; color: #2196f3;">${product.quantity}</div>
+                                            </div>
+                                            <div style="text-align: left;">
+                                                <div style="font-size: 12px; color: #666;">السعر</div>
+                                                <div style="font-weight: bold; color: #4caf50;">${product.price}</div>
+                                                <div style="font-size: 11px; color: #666;">إجمالي: ${(parseFloat(product.price.replace(' جنيه', '')) * product.quantity).toFixed(2)} جنيه</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <!-- Order Summary -->
+                                <div style="
+                                    margin-top: 20px;
+                                    padding: 15px;
+                                    background: linear-gradient(135deg, #4caf50, #45a049);
+                                    color: white;
+                                    border-radius: 8px;
+                                    text-align: center;
+                                ">
+                                    <div style="font-size: 18px; font-weight: bold;">
+                                        💰 إجمالي الطلب: ${order.totalAmount} جنيه
+                                    </div>
+                                    <div style="font-size: 14px; margin-top: 5px;">
+                                        📦 عدد القطع: ${order.products.reduce((sum, p) => sum + parseInt(p.quantity), 0)}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Order Info -->
+                            <div style="
+                                margin-top: 25px;
+                                padding: 15px;
+                                background: #f3e5f5;
+                                border-radius: 8px;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                            ">
+                                <div>
+                                    <strong>رقم الطلب:</strong> ${order.orderId}
+                                </div>
+                                <div>
+                                    <span class="sync-status ${order.synced ? 'synced' : 'unsynced'}">
+                                        ${order.synced ? 'تم المزامنة مع Google Sheets' : 'محفوظ محلياً فقط'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function closeCustomerModal() {
+            const modal = document.getElementById('customerProductsModal');
+            if (modal) {
+                modal.remove();
+            }
         }
 
         function deleteCompleteOrder(orderId) {
