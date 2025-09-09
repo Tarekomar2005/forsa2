@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار Google Sheets - Forsa</title>
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        
+        button:hover { transform: translateY(-2px); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .steps {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-right: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 اختبار تكامل Google Sheets</h1>
+        
+        <div class="steps">
+            <h3>📋 خطوات الإعداد:</h3>
+            <div class="step">
+                <strong>1.</strong> افتح Google Sheets جديد
+            </div>
+            <div class="step">
+                <strong>2.</strong> Extensions > Apps Script
+            </div>
+            <div class="step">
+                <strong>3.</strong> انسخ الكود من ملف google-apps-script-enhanced.js
+            </div>
+            <div class="step">
+                <strong>4.</strong> Deploy > New deployment > Web app
+            </div>
+            <div class="step">
+                <strong>5.</strong> Who has access → Anyone
+            </div>
+            <div class="step">
+                <strong>6.</strong> انسخ الرابط وضعه أدناه
+            </div>
+        </div>
+        
+        <h3>🔗 تحديث رابط Google Sheets:</h3>
+        <input type="url" id="sheetsUrl" class="url-input" 
+               placeholder="ضع هنا رابط Google Apps Script Web App">
+        <button onclick="updateSheetsUrl()">تحديث الرابط</button>
+        
+        <div id="urlStatus" class="status warning">
+            ⚠️ لم يتم إعداد رابط Google Sheets بعد
+        </div>
+        
+        <h3>🧪 اختبار الاتصال:</h3>
+        <button onclick="testConnection()" id="testBtn">اختبار الاتصال مع Google Sheets</button>
+        
+        <div id="testResult"></div>
+        
+        <h3>📊 إحصائيات البيانات المحلية:</h3>
+        <div id="localStats">
+            <p>الرسائل المحفوظة محلياً: <span id="localContacts">0</span></p>
+            <p>الطلبات المحفوظة محلياً: <span id="localOrders">0</span></p>
+            <p>الطلبات الكاملة المحفوظة محلياً: <span id="localCompleteOrders">0</span></p>
+        </div>
+        
+        <button onclick="syncAllData()">مزامنة جميع البيانات المحلية</button>
+        <button onclick="viewAdminPanel()">فتح لوحة الإدارة</button>
+    </div>
+
+    <script>
+        // Global variable for Google Sheets URL
+        let GOOGLE_SHEETS_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+        
+        // Update the Google Sheets URL
+        function updateSheetsUrl() {
+            const urlInput = document.getElementById('sheetsUrl');
+            const newUrl = urlInput.value.trim();
+            
+            if (!newUrl) {
+                showStatus('error', '❌ يرجى إدخال رابط صحيح');
+                return;
+            }
+            
+            if (!newUrl.includes('script.google.com')) {
+                showStatus('error', '❌ الرابط يجب أن يكون من Google Apps Script');
+                return;
+            }
+            
+            GOOGLE_SHEETS_URL = newUrl;
+            showStatus('success', '✅ تم تحديث الرابط بنجاح! الآن يمكنك اختبار الاتصال');
+            
+            // Save to localStorage for the main website
+            localStorage.setItem('forsa_google_sheets_url', newUrl);
+        }
+        
+        // Test connection to Google Sheets
+        async function testConnection() {
+            if (GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                showStatus('error', '❌ يرجى تحديث رابط Google Sheets أولاً');
+                return;
+            }
+            
+            const testBtn = document.getElementById('testBtn');
+            testBtn.textContent = 'جاري الاختبار...';
+            testBtn.disabled = true;
+            
+            try {
+                const testData = {
+                    action: 'saveContact',
+                    name: 'اختبار الاتصال',
+                    email: 'test@forsa.com',
+                    message: 'رسالة تجريبية للتأكد من عمل النظام - ' + new Date().toLocaleString('ar-EG'),
+                    source: 'test_page',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                // With no-cors, we can't read the response, but if no error thrown, it likely worked
+                showTestResult('success', '✅ تم إرسال البيانات بنجاح!<br>تحقق من Google Sheets للتأكد من وصول البيانات');
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                showTestResult('error', '❌ فشل في الاتصال: ' + error.message);
+            } finally {
+                testBtn.textContent = 'اختبار الاتصال مع Google Sheets';
+                testBtn.disabled = false;
+            }
+        }
+        
+        // Sync all local data to Google Sheets
+        async function syncAllData() {
+            if (GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                showStatus('error', '❌ يرجى تحديث رابط Google Sheets أولاً');
+                return;
+            }
+            
+            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            
+            let synced = 0;
+            let failed = 0;
+            
+            // Sync contacts
+            for (const contact of contacts.filter(c => !c.synced)) {
+                try {
+                    await fetch(GOOGLE_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveContact',
+                            name: contact.name,
+                            email: contact.email,
+                            message: contact.message,
+                            source: 'sync_from_local'
+                        })
+                    });
+                    contact.synced = true;
+                    synced++;
+                } catch (error) {
+                    failed++;
+                }
+            }
+            
+            // Sync quick orders
+            for (const order of orders.filter(o => !o.synced && o.orderType !== 'complete_order')) {
+                try {
+                    await fetch(GOOGLE_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveOrder',
+                            productName: order.productName,
+                            productPrice: order.productPrice,
+                            productCategory: order.productCategory,
+                            source: 'sync_from_local'
+                        })
+                    });
+                    order.synced = true;
+                    synced++;
+                } catch (error) {
+                    failed++;
+                }
+            }
+            
+            // Sync complete orders
+            for (const order of completeOrders.filter(o => !o.synced)) {
+                try {
+                    await fetch(GOOGLE_SHEETS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'saveCompleteOrder',
+                            orderId: order.orderId,
+                            customerName: order.customerName,
+                            customerPhone: order.customerPhone,
+                            customerEmail: order.customerEmail,
+                            customerCity: order.customerCity,
+                            customerAddress: order.customerAddress,
+                            paymentMethod: order.paymentMethod,
+                            customerNotes: order.customerNotes,
+                            products: JSON.stringify(order.products),
+                            totalItems: order.totalItems,
+                            totalAmount: order.totalAmount,
+                            source: 'sync_from_local'
+                        })
+                    });
+                    order.synced = true;
+                    synced++;
+                } catch (error) {
+                    failed++;
+                }
+            }
+            
+            // Update localStorage
+            localStorage.setItem('forsa_contacts', JSON.stringify(contacts));
+            localStorage.setItem('forsa_orders', JSON.stringify(orders));
+            localStorage.setItem('forsa_complete_orders', JSON.stringify(completeOrders));
+            
+            showTestResult('success', `✅ مزامنة مكتملة!<br>تم مزامنة: ${synced}<br>فشل في: ${failed}`);
+            updateLocalStats();
+        }
+        
+        // Open admin panel
+        function viewAdminPanel() {
+            window.open('admin-panel.html', '_blank');
+        }
+        
+        // Update local statistics
+        function updateLocalStats() {
+            const contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const orders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            
+            document.getElementById('localContacts').textContent = contacts.length;
+            document.getElementById('localOrders').textContent = orders.filter(o => o.orderType !== 'complete_order').length;
+            document.getElementById('localCompleteOrders').textContent = completeOrders.length;
+        }
+        
+        // Show status message
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('urlStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+        
+        // Show test result
+        function showTestResult(type, message) {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.className = `status ${type}`;
+            resultDiv.innerHTML = message;
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLocalStats();
+            
+            // Check if URL is saved
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                GOOGLE_SHEETS_URL = savedUrl;
+                document.getElementById('sheetsUrl').value = savedUrl;
+                showStatus('success', '✅ تم تحميل رابط Google Sheets المحفوظ');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1196,7 +1196,14 @@ function saveCompleteOrderToLocalStorage(orderData) {
 // Google Apps Script Web App URL
 // IMPORTANT: Replace this URL with your actual Google Apps Script Web App URL
 // Example: 'https://script.google.com/macros/s/AKfycbz.../exec'
+// Follow the setup guide in google-apps-script-enhanced.js to get your URL
 const GOOGLE_SHEETS_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+// Check if Google Sheets is properly configured
+function isGoogleSheetsConfigured() {
+    return GOOGLE_SHEETS_URL !== 'PASTE_YOUR_WEB_APP_URL_HERE' && 
+           GOOGLE_SHEETS_URL.includes('script.google.com');
+}
 
 // Function to save contact form data to Google Sheets
 async function saveContactToGoogleSheets(name, email, message) {
