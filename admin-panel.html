@@ -555,17 +555,48 @@
         });
 
         function loadAllLocalData() {
-            allData.contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
-            allData.quickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
-            allData.completeOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            // Load local data with source tags
+            const localContacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const localQuickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            const localCompleteOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            
+            // Tag local data with source indicators
+            allData.contacts = localContacts.map(item => ({ 
+                ...item, 
+                source: item.source || 'local',
+                dataSource: '🏠 محلي'
+            }));
+            
+            allData.quickOrders = localQuickOrders.map(item => ({ 
+                ...item, 
+                source: item.source || 'local',
+                dataSource: '🏠 محلي'
+            }));
+            
+            allData.completeOrders = localCompleteOrders.map(item => ({ 
+                ...item, 
+                source: item.source || 'local',
+                dataSource: '🏠 محلي'
+            }));
+            
             displayCurrentTabData();
         }
 
         function updateStatistics() {
-            document.getElementById('totalContacts').textContent = allData.contacts.length;
-            document.getElementById('totalQuickOrders').textContent = allData.quickOrders.length;
-            document.getElementById('totalCompleteOrders').textContent = allData.completeOrders.length;
+            // Count by data source
+            const localOrders = allData.completeOrders.filter(order => order.source === 'local' || !order.source).length;
+            const remoteOrders = allData.completeOrders.filter(order => order.source === 'google_sheets').length;
+            const totalOrders = allData.completeOrders.length;
             
+            const localContacts = allData.contacts.filter(contact => contact.source === 'local' || !contact.source).length;
+            const localQuickOrders = allData.quickOrders.filter(order => order.source === 'local' || !order.source).length;
+            
+            // Update the statistics cards with detailed breakdown
+            document.getElementById('totalContacts').textContent = allData.contacts.length;
+            document.getElementById('totalQuickOrders').textContent = localQuickOrders; // Unsynced quick orders
+            document.getElementById('totalCompleteOrders').textContent = totalOrders;
+            
+            // Calculate total revenue from all sources
             let totalRevenue = 0;
             allData.completeOrders.forEach(order => {
                 if (order.totals && order.totals.totalAmount) {
@@ -575,6 +606,16 @@
                 }
             });
             document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString();
+            
+            // Update statistics cards labels to show breakdown
+            const statsContainer = document.getElementById('statsContainer');
+            if (remoteOrders > 0) {
+                // Update labels to show source breakdown
+                const cards = statsContainer.querySelectorAll('.stat-card');
+                if (cards[2]) {
+                    cards[2].querySelector('.stat-label').innerHTML = `الطلبات الكاملة<br><small>(${localOrders} محلي + ${remoteOrders} من أجهزة أخرى)</small>`;
+                }
+            }
         }
 
         function showTab(tabName) {
@@ -651,7 +692,14 @@
                 return;
             }
             
-            tbody.innerHTML = allData.completeOrders.map(order => {
+            // Sort orders by timestamp (newest first)
+            const sortedOrders = [...allData.completeOrders].sort((a, b) => {
+                const timeA = new Date(a.timestamp || 0).getTime();
+                const timeB = new Date(b.timestamp || 0).getTime();
+                return timeB - timeA;
+            });
+            
+            tbody.innerHTML = sortedOrders.map(order => {
                 const date = new Date(order.timestamp || Date.now());
                 const orderId = order.orderId || 'ORD-' + Date.now();
                 const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
@@ -662,12 +710,22 @@
                 const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
                 const productCount = order.products ? order.products.length : order.totalItems || 1;
                 const productNames = order.products ? order.products.map(p => p.name).join(', ') : 'منتجات مختلفة';
-                const syncStatus = order.source === 'google_sheets' ? 'synced' : 'unsynced';
-                const syncLabel = order.source === 'google_sheets' ? 'مزامن' : 'غير مزامن';
+                
+                // Determine sync status and source indicator
+                let syncStatus, syncLabel, sourceIndicator;
+                if (order.source === 'google_sheets') {
+                    syncStatus = 'synced';
+                    syncLabel = 'مزامن';
+                    sourceIndicator = '☁️ من جهاز آخر';
+                } else {
+                    syncStatus = 'unsynced';
+                    syncLabel = 'محلي';
+                    sourceIndicator = '🏠 هذا الجهاز';
+                }
                 
                 return `
-                    <tr>
-                        <td><strong>${orderId}</strong></td>
+                    <tr style="${order.source === 'google_sheets' ? 'background-color: #f0f8ff;' : ''}">
+                        <td><strong>${orderId}</strong><br><small style="color: #666;">${sourceIndicator}</small></td>
                         <td>${date.toLocaleDateString('ar-EG')} م ${date.toLocaleTimeString('ar-EG')}</td>
                         <td>
                             <strong>${customerName}</strong><br>
@@ -680,7 +738,7 @@
                         </td>
                         <td>
                             ${productCount} منتج<br>
-                            <small>(${productNames.length > 50 ? productNames.substring(0, 50) + '...' : productNames})</small>
+                            <small style="color: #666;">(${productNames.length > 50 ? productNames.substring(0, 50) + '...' : productNames})</small>
                         </td>
                         <td><strong>${totalAmount} جنيه</strong></td>
                         <td><span class="sync-status ${syncStatus}">${syncLabel}</span></td>
@@ -691,9 +749,11 @@
                             <button class="action-btn btn-edit" onclick="showCustomerModal('${orderId}')" title="بيانات العميل">
                                 <i class="fas fa-user-friends"></i> العميل والمنتجات
                             </button>
+                            ${order.source !== 'google_sheets' ? `
                             <button class="action-btn btn-delete" onclick="deleteOrder('${orderId}')" title="حذف الطلب">
                                 <i class="fas fa-trash"></i> حذف
                             </button>
+                            ` : '<small style="color: #999;">لا يمكن حذف الطلبات المزامنة</small>'}
                         </td>
                     </tr>
                 `;
@@ -789,17 +849,18 @@
         }
 
         function refreshAllData() {
-            showNotification('جاري تحديث البيانات...', 'info');
+            showNotification('جاري تحديث جميع البيانات (محلي + Google Sheets)...', 'info');
             
+            // First load local data
             loadAllLocalData();
-            updateStatistics();
             
-            // محاولة تحديث من Google Sheets إذا كان متاحاً
+            // Then try to sync with Google Sheets
             const savedUrl = localStorage.getItem('forsa_google_sheets_url');
             if (savedUrl && savedUrl !== 'PASTE_YOUR_WEB_APP_URL_HERE') {
                 syncFromGoogleSheets();
             } else {
-                showNotification('تم تحديث البيانات المحلية فقط', 'warning');
+                updateStatistics();
+                showNotification('تم تحديث البيانات المحلية. لعرض الطلبات من الأجهزة الأخرى، برجاء إعداد Google Sheets', 'warning');
             }
         }
 
@@ -854,26 +915,83 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.status === 'success' && data.data) {
-                        // دمج البيانات من Google Sheets مع البيانات المحلية
+                        // Get local orders
                         const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
                         const remoteOrders = data.data;
                         
-                        // إضافة البيانات المحلية للعرض
-                        allData.completeOrders = [...localOrders, ...remoteOrders];
+                        // Mark local orders with source
+                        const localOrdersWithSource = localOrders.map(order => ({
+                            ...order,
+                            source: order.source || 'local',
+                            dataSource: '🏠 محلي'
+                        }));
                         
-                        updateConnectionStatus(true, `متصل بـ Google Sheets - عرض ${localOrders.length} طلب محلي + ${remoteOrders.length} طلب من الأجهزة الأخرى`);
+                        // Mark remote orders with source
+                        const remoteOrdersWithSource = remoteOrders.map(order => ({
+                            ...order,
+                            source: 'google_sheets',
+                            dataSource: '☁️ Google Sheets'
+                        }));
+                        
+                        // Merge and deduplicate based on orderId
+                        const allOrders = [...localOrdersWithSource, ...remoteOrdersWithSource];
+                        const uniqueOrders = [];
+                        const seenOrderIds = new Set();
+                        
+                        for (const order of allOrders) {
+                            if (order.orderId && !seenOrderIds.has(order.orderId)) {
+                                seenOrderIds.add(order.orderId);
+                                uniqueOrders.push(order);
+                            } else if (!order.orderId) {
+                                // Include orders without IDs (shouldn't happen but safe)
+                                uniqueOrders.push(order);
+                            }
+                        }
+                        
+                        // Update allData with merged results
+                        allData.completeOrders = uniqueOrders;
+                        
+                        // Also merge other data types if available
+                        mergeOtherDataSources();
+                        
+                        const totalLocal = localOrdersWithSource.length;
+                        const totalRemote = remoteOrdersWithSource.length;
+                        const totalUnique = uniqueOrders.length;
+                        
+                        updateConnectionStatus(true, `✅ متصل بـ Google Sheets - عرض ${totalUnique} طلب (${totalLocal} محلي + ${totalRemote} من الأجهزة الأخرى)`);
                         updateStatistics();
                         displayCurrentTabData();
-                        showNotification('تم تحديث البيانات من Google Sheets بنجاح!', 'success');
+                        showNotification(`تم تحديث البيانات: ${totalUnique} طلب إجمالي (${totalLocal} محلي + ${totalRemote} من الأجهزة الأخرى)`, 'success');
                     }
                 } else {
                     throw new Error('فشل في الاتصال بـ Google Sheets');
                 }
             } catch (error) {
                 console.error('خطأ في المزامنة:', error);
-                updateConnectionStatus(false, 'غير متصل - يعرض البيانات المحلية فقط');
+                // Fall back to local data only
+                loadAllLocalData();
+                updateConnectionStatus(false, '🔴 غير متصل - يعرض البيانات المحلية فقط');
                 showNotification('فشل في المزامنة. يتم عرض البيانات المحلية فقط.', 'warning');
             }
+        }
+        
+        function mergeOtherDataSources() {
+            // Also merge contacts and quick orders if we expand Google Sheets integration later
+            const localContacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+            const localQuickOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+            
+            // Mark local data sources
+            allData.contacts = localContacts.map(item => ({ 
+                ...item, 
+                source: item.source || 'local',
+                dataSource: '🏠 محلي'
+            }));
+            
+            allData.quickOrders = localQuickOrders.map(item => ({ 
+                ...item, 
+                source: item.source || 'local',
+                dataSource: '🏠 محلي'
+            }));
         }
 
         function generateCSVContent() {
