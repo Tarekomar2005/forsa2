@@ -400,6 +400,15 @@
             <div class="connection-status" id="connectionStatus">
                 🟡 جاري فحص الاتصال مع Google Sheets...
             </div>
+            
+            <!-- Quick setup button when not connected -->
+            <div id="quickSetupAlert" style="display: none; background: #ff6b6b; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 20px 0;">
+                <h3 style="margin: 0 0 10px 0;">⚠️ لا يمكن عرض الطلبات من الأجهزة الأخرى</h3>
+                <p style="margin: 10px 0;">يتم عرض الطلبات المحلية فقط. لرؤية جميع الطلبات من كل الأجهزة، يجب إعداد Google Sheets</p>
+                <button onclick="setupGoogleSheets()" style="background: white; color: #ff6b6b; font-weight: bold; padding: 15px 30px; font-size: 16px;">
+                    🚀 إعداد Google Sheets الآن (5 دقائق)
+                </button>
+            </div>
         </div>
 
         <div class="stats" id="statsContainer">
@@ -900,6 +909,37 @@
         function setupGoogleSheets() {
             window.open('setup-google-sheets-now.html', '_blank');
         }
+        
+        // Debug function to check data status
+        function debugDataStatus() {
+            console.log('=== DEBUG DATA STATUS ===');
+            const savedUrl = localStorage.getItem('forsa_google_sheets_url');
+            console.log('Google Sheets URL:', savedUrl);
+            console.log('Local complete orders:', JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]'));
+            console.log('All data in memory:', allData);
+            
+            const localCount = allData.completeOrders.filter(o => o.source === 'local' || !o.source).length;
+            const remoteCount = allData.completeOrders.filter(o => o.source === 'google_sheets').length;
+            
+            console.log('Local orders count:', localCount);
+            console.log('Remote orders count:', remoteCount);
+            console.log('Total orders in memory:', allData.completeOrders.length);
+            
+            let status = `🔍 فحص حالة البيانات:\n\n`;
+            status += `Google Sheets URL: ${savedUrl ? '✅ محفوظ' : '❌ غير محفوظ'}\n`;
+            status += `🏠 طلبات محلية: ${localCount}\n`;
+            status += `☁️ طلبات من أجهزة أخرى: ${remoteCount}\n`;
+            status += `📊 إجمالي في الذاكرة: ${allData.completeOrders.length}\n\n`;
+            
+            if (!savedUrl || savedUrl === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                status += `⚠️ لعرض جميع الطلبات، يجب إعداد Google Sheets`;
+            }
+            
+            alert(status);
+        }
+        
+        // Make debug function accessible from console
+        window.debugDataStatus = debugDataStatus;
 
         async function syncFromGoogleSheets() {
             const savedUrl = localStorage.getItem('forsa_google_sheets_url');
@@ -915,9 +955,14 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.status === 'success' && data.data) {
+                        console.log('Debug: Google Sheets response:', data);
+                        console.log('Debug: Remote orders from Google Sheets:', data.data);
+                        
                         // Get local orders
                         const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
                         const remoteOrders = data.data;
+                        
+                        console.log('Debug: Local orders from localStorage:', localOrders);
                         
                         // Mark local orders with source
                         const localOrdersWithSource = localOrders.map(order => ({
@@ -938,15 +983,30 @@
                         const uniqueOrders = [];
                         const seenOrderIds = new Set();
                         
+                        console.log('Debug: Local orders:', localOrdersWithSource.length);
+                        console.log('Debug: Remote orders:', remoteOrdersWithSource.length);
+                        console.log('Debug: All orders before dedup:', allOrders.length);
+                        
                         for (const order of allOrders) {
-                            if (order.orderId && !seenOrderIds.has(order.orderId)) {
-                                seenOrderIds.add(order.orderId);
+                            if (order.orderId) {
+                                if (!seenOrderIds.has(order.orderId)) {
+                                    seenOrderIds.add(order.orderId);
+                                    uniqueOrders.push(order);
+                                    console.log('Debug: Added order:', order.orderId, 'Source:', order.source);
+                                } else {
+                                    console.log('Debug: Duplicate order skipped:', order.orderId, 'Source:', order.source);
+                                }
+                            } else {
+                                // Include orders without IDs with unique timestamp-based ID
+                                const tempId = 'TEMP-' + (order.timestamp || Date.now()) + '-' + Math.random().toString(36).substr(2, 9);
+                                order.orderId = tempId;
                                 uniqueOrders.push(order);
-                            } else if (!order.orderId) {
-                                // Include orders without IDs (shouldn't happen but safe)
-                                uniqueOrders.push(order);
+                                console.log('Debug: Added order without ID:', tempId, 'Source:', order.source);
                             }
                         }
+                        
+                        console.log('Debug: Unique orders after dedup:', uniqueOrders.length);
+                        console.log('Debug: Final orders:', uniqueOrders);
                         
                         // Update allData with merged results
                         allData.completeOrders = uniqueOrders;
@@ -1096,8 +1156,17 @@
 
         function updateConnectionStatus(isConnected, message) {
             const statusDiv = document.getElementById('connectionStatus');
+            const quickSetupAlert = document.getElementById('quickSetupAlert');
+            
             statusDiv.className = 'connection-status ' + (isConnected ? 'connected' : 'disconnected');
             statusDiv.innerHTML = (isConnected ? '🟢 ' : '🔴 ') + message;
+            
+            // Show/hide quick setup alert
+            if (isConnected) {
+                quickSetupAlert.style.display = 'none';
+            } else {
+                quickSetupAlert.style.display = 'block';
+            }
         }
 
         function showNotification(message, type = 'success') {
@@ -1125,6 +1194,20 @@
                 setTimeout(syncFromGoogleSheets, 1000);
             } else {
                 updateConnectionStatus(false, 'غير متصل - يعرض البيانات المحلية فقط');
+            }
+            
+            // Add a refresh button listener for manual debugging
+            console.log('Debug: Admin panel loaded. Check console for debugging info.');
+            console.log('Debug: Local complete orders:', JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]'));
+            console.log('Debug: Google Sheets URL:', savedUrl);
+            
+            // Show immediate status about Google Sheets connection
+            if (!savedUrl || savedUrl === 'PASTE_YOUR_WEB_APP_URL_HERE') {
+                setTimeout(() => {
+                    if (confirm('لا يمكن عرض الطلبات من الأجهزة الأخرى لأن Google Sheets غير مُعدَّد.\n\nهل تريد إعداد Google Sheets الآن لرؤية جميع الطلبات؟')) {
+                        window.open('setup-google-sheets-now.html', '_blank');
+                    }
+                }, 2000);
             }
         });
     </script>
