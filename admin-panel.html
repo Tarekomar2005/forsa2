@@ -440,6 +440,9 @@
             <button class="btn btn-teal" onclick="syncData()">
                 <i class="fas fa-sync"></i> مزامنة البيانات
             </button>
+            <button class="btn btn-warning" onclick="setupGoogleSheets()">
+                <i class="fas fa-cog"></i> إعداد Google Sheets
+            </button>
         </div>
 
         <div class="tabs">
@@ -823,14 +826,18 @@
             const savedUrl = localStorage.getItem('forsa_google_sheets_url');
             
             if (!savedUrl || savedUrl === 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                if (confirm('لم يتم إعداد Google Sheets بعد. هل تريد الذهاب لصفحة الإعداد؟')) {
-                    window.open('test-sheets-setup.html', '_blank');
+                if (confirm('لم يتم إعداد Google Sheets بعد. هذا هو السبب في عدم ظهور الطلبات من الأجهزة الأخرى.\n\nهل تريد إعداده الآن؟')) {
+                    setupGoogleSheets();
                 }
                 return;
             }
             
             showNotification('جاري مزامنة البيانات مع Google Sheets...', 'info');
             syncFromGoogleSheets();
+        }
+
+        function setupGoogleSheets() {
+            window.open('setup-google-sheets-now.html', '_blank');
         }
 
         async function syncFromGoogleSheets() {

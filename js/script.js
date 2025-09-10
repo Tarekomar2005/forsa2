@@ -1015,6 +1015,7 @@ async function saveCompleteOrderData() {
     try {
         // Save to Google Sheets first
         await saveCompleteOrderToGoogleSheets(orderData);
+        showNotification('تم حفظ الطلب بنجاح! يمكن الوصول إليه من جميع الأجهزة.', 'success');
         console.log('✅ Order saved to Google Sheets successfully');
         
         // Save to local storage as backup
@@ -1036,6 +1037,13 @@ async function saveCompleteOrderData() {
 
 // Save complete order to Google Sheets
 async function saveCompleteOrderToGoogleSheets(orderData) {
+    // Update URL from localStorage in case it was changed
+    GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || GOOGLE_SHEETS_URL;
+    
+    if (!isGoogleSheetsConfigured()) {
+        console.log('Google Sheets not configured, skipping cloud save');
+        return Promise.resolve();
+    }
     const data = {
         action: 'saveCompleteOrder',
         orderId: orderData.orderId,
@@ -1135,10 +1143,21 @@ function saveCompleteOrderToLocalStorage(orderData) {
 // =============================================
 
 // Google Apps Script Web App URL
-// IMPORTANT: Replace this URL with your actual Google Apps Script Web App URL
-// Example: 'https://script.google.com/macros/s/AKfycbz.../exec'
-// Follow the setup guide in google-apps-script-enhanced.js to get your URL
-const GOOGLE_SHEETS_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+// This will be loaded from localStorage if available, or use default
+let GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+// Function to update Google Sheets URL
+function updateGoogleSheetsURL(newUrl) {
+    if (newUrl && newUrl.includes('script.google.com') && newUrl.includes('/exec')) {
+        localStorage.setItem('forsa_google_sheets_url', newUrl);
+        GOOGLE_SHEETS_URL = newUrl;
+        console.log('Google Sheets URL updated successfully');
+        return true;
+    } else {
+        console.error('Invalid Google Sheets URL format');
+        return false;
+    }
+}
 
 // Check if Google Sheets is properly configured
 function isGoogleSheetsConfigured() {
@@ -1148,6 +1167,13 @@ function isGoogleSheetsConfigured() {
 
 // Function to save contact form data to Google Sheets
 async function saveContactToGoogleSheets(name, email, message) {
+    // Update URL from localStorage in case it was changed
+    GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || GOOGLE_SHEETS_URL;
+    
+    if (!isGoogleSheetsConfigured()) {
+        throw new Error('Google Sheets URL not configured');
+    }
+    
     const data = {
         action: 'saveContact',
         name: name,
@@ -1182,6 +1208,13 @@ async function saveContactToGoogleSheets(name, email, message) {
 
 // Function to save quick order data to Google Sheets
 async function saveQuickOrderToGoogleSheets(productName, productPrice, productCategory) {
+    // Update URL from localStorage in case it was changed
+    GOOGLE_SHEETS_URL = localStorage.getItem('forsa_google_sheets_url') || GOOGLE_SHEETS_URL;
+    
+    if (!isGoogleSheetsConfigured()) {
+        throw new Error('Google Sheets URL not configured');
+    }
+    
     const data = {
         action: 'saveOrder',
         productName: productName,
