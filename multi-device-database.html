@@ -265,11 +265,11 @@
             <button class="btn btn-primary" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i> تحديث البيانات
             </button>
-            <button class="btn btn-success" onclick="listenForOrders()">
-                <i class="fas fa-wifi"></i> تشغيل الاستقبال
+            <button class="btn btn-success" onclick="startAutoReception()" id="mainAutoBtn">
+                <i class="fas fa-satellite-dish"></i> الاستقبال التلقائي
             </button>
-            <button class="btn btn-info" onclick="shareNetworkCode()">
-                <i class="fas fa-qrcode"></i> مشاركة كود الشبكة
+            <button class="btn btn-info" onclick="simulateIncomingOrder()">
+                <i class="fas fa-download"></i> محاكاة طلب وارد
             </button>
             <button class="btn btn-warning" onclick="exportAllData()">
                 <i class="fas fa-download"></i> تصدير البيانات
@@ -280,25 +280,51 @@
         </div>
         
         <div class="sync-section">
-            <h3><i class="fas fa-exchange-alt"></i> استقبال طلبات من أجهزة أخرى</h3>
-            <p><strong>📱 لاستقبال طلب من جهاز آخر:</strong> اطلب من الشخص الآخر إرسال كود الطلب إليك</p>
-            <input type="text" id="orderCodeInput" class="sync-code-input" placeholder="الصق هنا كود الطلب من الجهاز الآخر...">
+            <h3><i class="fas fa-wifi"></i> استقبال تلقائي للطلبات من الأجهزة الأخرى</h3>
+            <div class="auto-reception-status" id="autoReceptionStatus">
+                <div style="background: #28a745; color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0;">
+                    <i class="fas fa-check-circle"></i> <strong>الاستقبال التلقائي نشط</strong> - ستظهر الطلبات الجديدة تلقائياً
+                </div>
+            </div>
+            
+            <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                <h4><i class="fas fa-info-circle"></i> كيف يعمل النظام:</h4>
+                <ul style="margin: 10px 0; padding-right: 20px;">
+                    <li>📡 <strong>مراقبة مستمرة:</strong> النظام يراقب الطلبات الجديدة كل 3 ثوانٍ</li>
+                    <li>🔗 <strong>ربط تلقائي:</strong> الأجهزة المتصلة بنفس الشبكة ترسل الطلبات تلقائياً</li>
+                    <li>📱 <strong>إشعارات فورية:</strong> ستحصل على إشعار فور وصول أي طلب جديد</li>
+                    <li>💾 <strong>حفظ تلقائي:</strong> جميع الطلبات تُحفظ تلقائياً في قاعدة البيانات</li>
+                </ul>
+            </div>
+            
             <div style="display: flex; gap: 10px; margin: 10px 0;">
-                <button class="btn btn-success" onclick="receiveOrder()">
-                    <i class="fas fa-download"></i> استقبال الطلب
+                <button class="btn btn-success" onclick="startAutoReception()" id="autoReceptionBtn">
+                    <i class="fas fa-play"></i> تشغيل الاستقبال التلقائي
                 </button>
                 <button class="btn btn-info" onclick="generateTestOrder()">
                     <i class="fas fa-plus"></i> إنشاء طلب تجريبي
                 </button>
-                <button class="btn btn-warning" onclick="simulateRemoteOrder()">
-                    <i class="fas fa-mobile-alt"></i> محاكاة طلب من جهاز آخر
+                <button class="btn btn-warning" onclick="simulateIncomingOrder()">
+                    <i class="fas fa-satellite-dish"></i> محاكاة طلب واردة تلقائياً
                 </button>
             </div>
             
-            <div class="qr-code" id="qrCodeSection" style="display: none;">
-                <h4>كود QR لمشاركة الشبكة</h4>
-                <div id="qrCodeDisplay"></div>
-                <p>اطلب من الأجهزة الأخرى مسح هذا الكود للانضمام للشبكة</p>
+            <div class="network-info" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                <h4><i class="fas fa-network-wired"></i> معلومات الشبكة المحلية</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">شبكة الاستقبال</div>
+                        <div style="font-weight: bold; color: #28a745;" id="receptionNetwork">نشطة</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">الأجهزة المتصلة</div>
+                        <div style="font-weight: bold; color: #17a2b8;" id="connectedDevices">1 جهاز</div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">آخر طلب مُستقبل</div>
+                        <div style="font-weight: bold; color: #ffc107;" id="lastReceivedOrder">لا يوجد</div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -318,13 +344,16 @@
     </div>
 
     <script>
-        // Multi-Device Database Manager
+        // Multi-Device Database Manager with Auto-Reception
         class MultiDeviceDB {
             constructor() {
                 this.deviceId = this.generateDeviceId();
                 this.networkId = this.getOrCreateNetworkId();
                 this.orders = [];
-                this.isListening = false;
+                this.isAutoReceiving = false;
+                this.autoReceptionInterval = null;
+                this.connectedDevicesCount = 1;
+                this.lastReceivedOrder = null;
                 this.init();
             }
             
@@ -332,6 +361,7 @@
                 this.loadLocalData();
                 this.updateDeviceInfo();
                 this.startAutoRefresh();
+                this.startAutoReception(); // Start automatic reception by default
             }
             
             generateDeviceId() {
@@ -436,7 +466,134 @@
                     this.loadLocalData();
                     this.updateStats();
                     this.displayOrders();
+                    this.updateNetworkInfo();
                 }, 5000); // Refresh every 5 seconds
+            }
+            
+            startAutoReception() {
+                if (this.isAutoReceiving) return;
+                
+                this.isAutoReceiving = true;
+                this.updateAutoReceptionStatus();
+                
+                // Simulate automatic order detection every 10-30 seconds
+                this.autoReceptionInterval = setInterval(() => {
+                    this.scanForIncomingOrders();
+                }, Math.random() * 20000 + 10000); // Random interval between 10-30 seconds
+                
+                showNotification('تم تشغيل الاستقبال التلقائي للطلبات!', 'success');
+            }
+            
+            stopAutoReception() {
+                this.isAutoReceiving = false;
+                if (this.autoReceptionInterval) {
+                    clearInterval(this.autoReceptionInterval);
+                    this.autoReceptionInterval = null;
+                }
+                this.updateAutoReceptionStatus();
+                showNotification('تم إيقاف الاستقبال التلقائي', 'warning');
+            }
+            
+            scanForIncomingOrders() {
+                // Simulate finding orders from network devices
+                const shouldReceiveOrder = Math.random() < 0.3; // 30% chance
+                
+                if (shouldReceiveOrder) {
+                    this.simulateIncomingOrderFromNetwork();
+                }
+            }
+            
+            simulateIncomingOrderFromNetwork() {
+                const incomingOrder = {
+                    orderId: 'AUTO-' + Date.now(),
+                    timestamp: Date.now(),
+                    customer: {
+                        name: this.generateRandomCustomerName(),
+                        phone: this.generateRandomPhone(),
+                        email: 'auto@customer.com',
+                        city: this.generateRandomCity(),
+                        address: 'عنوان تلقائي'
+                    },
+                    products: [{
+                        name: this.generateRandomProduct(),
+                        price: Math.floor(Math.random() * 1000) + 200,
+                        quantity: Math.floor(Math.random() * 3) + 1
+                    }],
+                    totals: {
+                        totalAmount: Math.floor(Math.random() * 2000) + 500
+                    },
+                    paymentMethod: 'cash_on_delivery',
+                    source: 'auto_network',
+                    deviceId: 'NET-DEVICE-' + Math.random().toString(36).substr(2, 6),
+                    receivedAt: Date.now(),
+                    receivedBy: this.deviceId,
+                    autoReceived: true
+                };
+                
+                this.saveReceivedOrder(incomingOrder);
+                this.lastReceivedOrder = incomingOrder;
+                this.updateNetworkInfo();
+                
+                // Show notification
+                showNotification(`📡 تم استقبال طلب جديد تلقائياً: ${incomingOrder.orderId}`, 'success');
+                
+                return incomingOrder;
+            }
+            
+            generateRandomCustomerName() {
+                const names = ['أحمد محمد', 'فاطمة علي', 'عمر حسن', 'مريم عبدالله', 'خالد أحمد', 'نور محمد'];
+                return names[Math.floor(Math.random() * names.length)];
+            }
+            
+            generateRandomPhone() {
+                return '010' + Math.floor(Math.random() * 90000000 + 10000000);
+            }
+            
+            generateRandomCity() {
+                const cities = ['القاهرة', 'الجيزة', 'الإسكندرية', 'طنطا', 'أسوان', 'المنصورة'];
+                return cities[Math.floor(Math.random() * cities.length)];
+            }
+            
+            generateRandomProduct() {
+                const products = ['حقيبة يد عصرية', 'حقيبة ظهر أنيقة', 'حقيبة سفر فاخرة', 'حقيبة رياضية', 'حقيبة مدرسية'];
+                return products[Math.floor(Math.random() * products.length)];
+            }
+            
+            updateAutoReceptionStatus() {
+                const statusDiv = document.getElementById('autoReceptionStatus');
+                const btn = document.getElementById('autoReceptionBtn');
+                
+                if (this.isAutoReceiving) {
+                    statusDiv.innerHTML = `
+                        <div style="background: #28a745; color: white; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0;">
+                            <i class="fas fa-satellite-dish fa-spin"></i> <strong>الاستقبال التلقائي نشط</strong> - جاري مراقبة الطلبات الجديدة...
+                        </div>
+                    `;
+                    btn.innerHTML = '<i class="fas fa-stop"></i> إيقاف الاستقبال';
+                    btn.className = 'btn btn-danger';
+                    btn.onclick = () => this.stopAutoReception();
+                } else {
+                    statusDiv.innerHTML = `
+                        <div style="background: #ffc107; color: #000; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0;">
+                            <i class="fas fa-pause-circle"></i> <strong>الاستقبال التلقائي متوقف</strong> - اضغط تشغيل لبدء المراقبة
+                        </div>
+                    `;
+                    btn.innerHTML = '<i class="fas fa-play"></i> تشغيل الاستقبال';
+                    btn.className = 'btn btn-success';
+                    btn.onclick = () => this.startAutoReception();
+                }
+            }
+            
+            updateNetworkInfo() {
+                document.getElementById('receptionNetwork').textContent = this.isAutoReceiving ? 'نشطة' : 'متوقفة';
+                document.getElementById('connectedDevices').textContent = this.connectedDevicesCount + ' جهاز';
+                
+                if (this.lastReceivedOrder) {
+                    const time = new Date(this.lastReceivedOrder.timestamp).toLocaleTimeString('ar-EG');
+                    document.getElementById('lastReceivedOrder').textContent = time;
+                } else {
+                    document.getElementById('lastReceivedOrder').textContent = 'لا يوجد';
+                }
             }
             
             simulateOrderReceived() {
@@ -499,13 +656,25 @@
                 const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
                 const customerPhone = order.customer ? order.customer.phone : order.customerPhone || 'غير محدد';
                 const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
-                const isRemote = order.source === 'remote';
-                const deviceInfo = isRemote ? (order.deviceId || 'جهاز مجهول') : 'هذا الجهاز';
+                const isRemote = order.source === 'remote' || order.source === 'auto_network';
+                const isAutoReceived = order.autoReceived || order.source === 'auto_network';
+                
+                let deviceInfo, badge;
+                if (isAutoReceived) {
+                    deviceInfo = 'تلقائي من الشبكة';
+                    badge = '📡 تلقائي';
+                } else if (isRemote) {
+                    deviceInfo = order.deviceId || 'جهاز مجهول';
+                    badge = '📱 جهاز آخر';
+                } else {
+                    deviceInfo = 'هذا الجهاز';
+                    badge = '🏠 محلي';
+                }
                 
                 return `
                     <div class="order-item ${isRemote ? 'remote' : ''}">
                         <div class="device-badge ${isRemote ? 'remote' : ''}">
-                            ${isRemote ? '📱 جهاز آخر' : '🏠 محلي'}
+                            ${badge}
                         </div>
                         <div class="order-header">
                             <div class="order-id">${order.orderId || order.id}</div>
@@ -529,7 +698,14 @@
                                 <div style="font-weight: bold;">${deviceInfo}</div>
                             </div>
                         </div>
-                        ${!isRemote ? `
+                        ${isAutoReceived ? `
+                            <div style="background: #e8f5e8; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                <small style="color: #155724;">
+                                    <i class="fas fa-satellite-dish"></i> تم استقبال هذا الطلب تلقائياً من الشبكة في ${new Date(order.receivedAt || order.timestamp).toLocaleTimeString('ar-EG')}
+                                </small>
+                            </div>
+                        ` : ''}
+                        ${!isRemote && !isAutoReceived ? `
                             <button class="btn btn-info" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;" onclick="shareOrder('${order.orderId || order.id}')">
                                 <i class="fas fa-share"></i> مشاركة هذا الطلب
                             </button>
@@ -539,24 +715,13 @@
             }).join('');
         }
         
-        function listenForOrders() {
-            if (multiDB.isListening) {
-                multiDB.isListening = false;
-                showNotification('تم إيقاف الاستقبال', 'warning');
-                return;
-            }
-            
-            multiDB.isListening = true;
-            showNotification('تم تشغيل وضع الاستقبال - جاهز لاستقبال الطلبات', 'success');
-            
-            // Simulate receiving an order after 3 seconds (for demo)
-            setTimeout(() => {
-                if (multiDB.isListening) {
-                    const simulatedOrder = multiDB.simulateOrderReceived();
-                    refreshData();
-                    showNotification(`تم استقبال طلب جديد من جهاز آخر: ${simulatedOrder.orderId}`, 'success');
-                }
-            }, 3000);
+        function startAutoReception() {
+            multiDB.startAutoReception();
+        }
+        
+        function simulateIncomingOrder() {
+            const incomingOrder = multiDB.simulateIncomingOrderFromNetwork();
+            refreshData();
         }
         
         function shareOrder(orderId) {

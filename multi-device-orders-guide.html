@@ -1,169 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دليل عرض طلبات جميع الأجهزة - Forsa</title>
-    <style>
-        body {
-            font-family: 'Cairo', Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f6f3 0%, #f5f3f0 50%, #f0e6c7 100%);
-        }
-        
-        .guide-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #b02e2e;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .problem-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .solution-box {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .step {
-            background: #e7f3ff;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            border-right: 4px solid #b02e2e;
-        }
-        
-        .warning {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-        
-        .code {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            border: 1px solid #dee2e6;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #b02e2e, #d63447);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 5px;
-        }
-        
-        button:hover { transform: translateY(-2px); }
-    </style>
-</head>
-<body>
-    <div class="guide-container">
-        <h1>🔧 حل مشكلة: الطلبات من تليفون تاني مش بتظهر في لوحة الإدارة</h1>
-        
-        <div class="problem-box">
-            <h3>🚨 المشكلة:</h3>
-            <p>لما العميل يعمل طلب من تليفون تاني، الطلب مش بيظهر في لوحة الإدارة لأن كل جهاز بيحفظ بياناته المحلية منفصلة.</p>
-        </div>
-        
-        <div class="solution-box">
-            <h3>✅ الحل:</h3>
-            <p>ربط لوحة الإدارة بـ Google Sheets عشان تقدر تشوف طلبات جميع الأجهزة في مكان واحد.</p>
-        </div>
-        
-        <h2>🛠️ خطوات الإعداد:</h2>
-        
-        <div class="step">
-            <h4>الخطوة 1: إعداد Google Sheets</h4>
-            <p>1. افتح <a href="https://sheets.google.com" target="_blank">Google Sheets</a></p>
-            <p>2. اعمل ملف جديد واسمه "Forsa Orders Database"</p>
-            <p>3. اذهب لـ Extensions > Apps Script</p>
-            <p>4. انسخ الكود من ملف <strong>google-apps-script-enhanced.js</strong></p>
-            <p>5. Deploy > New deployment > Web app</p>
-            <p>6. خلي "Who has access" = <strong>Anyone</strong></p>
-            <p>7. انسخ الـ URL اللي هيظهر</p>
-        </div>
-        
-        <div class="step">
-            <h4>الخطوة 2: ربط لوحة الإدارة</h4>
-            <p>1. افتح لوحة الإدارة (admin-panel.html)</p>
-            <p>2. اضغط "إعداد Google Sheets" 🔧</p>
-            <p>3. حط الـ URL اللي نسخته</p>
-            <p>4. اضغط "تحديث من جميع المصادر" 🔄</p>
-        </div>
-        
-        <div class="step">
-            <h4>الخطوة 3: التأكد من نجاح الربط</h4>
-            <p>المفروض تشوف في أعلى لوحة الإدارة:</p>
-            <div class="code">
-                🟢 متصل بـ Google Sheets - يعرض بيانات جميع الأجهزة
-            </div>
-            <p>بدلاً من:</p>
-            <div class="code">
-                🟡 غير متصل - يعرض البيانات المحلية فقط
-            </div>
-        </div>
-        
-        <div class="warning">
-            <h4>⚠️ ملاحظات مهمة:</h4>
-            <ul>
-                <li><strong>البيانات المحلية:</strong> كل جهاز بيحفظ بياناته الخاصة في المتصفح</li>
-                <li><strong>Google Sheets:</strong> بيتم حفظ نسخة من كل طلب هناك أيضاً</li>
-                <li><strong>لوحة الإدارة الجديدة:</strong> بتجمع البيانات من المصدرين</li>
-                <li><strong>المزامنة:</strong> اضغط "تحديث من جميع المصادر" لأحدث البيانات</li>
-            </ul>
-        </div>
-        
-        <h2>🎯 النتيجة النهائية:</h2>
-        
-        <div class="solution-box">
-            <h4>بعد الإعداد هتقدر تشوف:</h4>
-            <ul>
-                <li>✅ طلبات من جهازك (محفوظة محلياً)</li>
-                <li>✅ طلبات من أي جهاز تاني (من Google Sheets)</li>
-                <li>✅ معلومات العميل والمنتجات كاملة</li>
-                <li>✅ حالة المزامنة لكل طلب</li>
-            </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px;">
-            <button onclick="window.open('admin-panel.html', '_blank')">
-                🔧 افتح لوحة الإدارة
-            </button>
-            <button onclick="window.open('test-sheets-setup.html', '_blank')">
-                🧪 صفحة اختبار الإعداد
-            </button>
-            <button onclick="window.open('index.html', '_blank')">
-                🏠 الموقع الرئيسي
-            </button>
-        </div>
-        
-        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
-            <p><strong>💡 نصيحة:</strong> استخدم "فحص البيانات" في لوحة الإدارة للتأكد من حالة الاتصال</p>
-        </div>
-    </div>
-</body>
-</html>
