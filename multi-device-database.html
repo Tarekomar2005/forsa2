@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قاعدة البيانات متعددة الأجهزة - Forsa</title>
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #b02e2e;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .connection-status {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        
+        .device-info {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .btn-success { background: linear-gradient(135deg, #28a745, #20c997); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107, #ff8c00); }
+        .btn-danger { background: linear-gradient(135deg, #dc3545, #c82333); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8, #138496); }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .data-section {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 30px 0;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .order-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .order-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .order-item.remote {
+            background: #e8f4fd;
+            border-color: #b8daff;
+        }
+        
+        .device-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .device-badge.remote {
+            background: #17a2b8;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            margin-right: 100px;
+        }
+        
+        .order-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .order-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .sync-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .sync-code-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        
+        .qr-code {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-network-wired"></i> قاعدة البيانات متعددة الأجهزة</h1>
+        
+        <div class="connection-status">
+            <i class="fas fa-server"></i> نشط - يستقبل البيانات من جميع الأجهزة المتصلة
+        </div>
+        
+        <div class="device-info">
+            <h3><i class="fas fa-mobile-alt"></i> معلومات هذا الجهاز</h3>
+            <p><strong>معرف الجهاز:</strong> <span id="deviceId"></span></p>
+            <p><strong>الشبكة:</strong> <span id="networkId"></span></p>
+            <p><strong>آخر تحديث:</strong> <span id="lastUpdate"></span></p>
+        </div>
+        
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">إجمالي الطلبات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="localOrders">0</div>
+                <div class="stat-label">طلبات محلية</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remoteOrders">0</div>
+                <div class="stat-label">طلبات من أجهزة أخرى</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">0</div>
+                <div class="stat-label">إجمالي الإيرادات (جنيه)</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> تحديث البيانات
+            </button>
+            <button class="btn btn-success" onclick="listenForOrders()">
+                <i class="fas fa-wifi"></i> تشغيل الاستقبال
+            </button>
+            <button class="btn btn-info" onclick="shareNetworkCode()">
+                <i class="fas fa-qrcode"></i> مشاركة كود الشبكة
+            </button>
+            <button class="btn btn-warning" onclick="exportAllData()">
+                <i class="fas fa-download"></i> تصدير البيانات
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> مسح البيانات
+            </button>
+        </div>
+        
+        <div class="sync-section">
+            <h3><i class="fas fa-exchange-alt"></i> استقبال طلبات من أجهزة أخرى</h3>
+            <p><strong>📱 لاستقبال طلب من جهاز آخر:</strong> اطلب من الشخص الآخر إرسال كود الطلب إليك</p>
+            <input type="text" id="orderCodeInput" class="sync-code-input" placeholder="الصق هنا كود الطلب من الجهاز الآخر...">
+            <div style="display: flex; gap: 10px; margin: 10px 0;">
+                <button class="btn btn-success" onclick="receiveOrder()">
+                    <i class="fas fa-download"></i> استقبال الطلب
+                </button>
+                <button class="btn btn-info" onclick="generateTestOrder()">
+                    <i class="fas fa-plus"></i> إنشاء طلب تجريبي
+                </button>
+                <button class="btn btn-warning" onclick="simulateRemoteOrder()">
+                    <i class="fas fa-mobile-alt"></i> محاكاة طلب من جهاز آخر
+                </button>
+            </div>
+            
+            <div class="qr-code" id="qrCodeSection" style="display: none;">
+                <h4>كود QR لمشاركة الشبكة</h4>
+                <div id="qrCodeDisplay"></div>
+                <p>اطلب من الأجهزة الأخرى مسح هذا الكود للانضمام للشبكة</p>
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <div class="section-header">
+                <span><i class="fas fa-list"></i> جميع الطلبات</span>
+                <span id="ordersCount">0 طلب</span>
+            </div>
+            <div class="section-content" id="ordersContainer">
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>لا توجد طلبات بعد</h3>
+                    <p>ستظهر هنا الطلبات من هذا الجهاز والأجهزة الأخرى</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Multi-Device Database Manager
+        class MultiDeviceDB {
+            constructor() {
+                this.deviceId = this.generateDeviceId();
+                this.networkId = this.getOrCreateNetworkId();
+                this.orders = [];
+                this.isListening = false;
+                this.init();
+            }
+            
+            init() {
+                this.loadLocalData();
+                this.updateDeviceInfo();
+                this.startAutoRefresh();
+            }
+            
+            generateDeviceId() {
+                let deviceId = localStorage.getItem('forsa_device_id');
+                if (!deviceId) {
+                    deviceId = 'DEV-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('forsa_device_id', deviceId);
+                }
+                return deviceId;
+            }
+            
+            getOrCreateNetworkId() {
+                let networkId = localStorage.getItem('forsa_network_id');
+                if (!networkId) {
+                    networkId = 'NET-' + Date.now().toString(36).toUpperCase();
+                    localStorage.setItem('forsa_network_id', networkId);
+                }
+                return networkId;
+            }
+            
+            loadLocalData() {
+                // Load local orders
+                const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                
+                // Load received orders from other devices
+                const receivedOrders = JSON.parse(localStorage.getItem('forsa_received_orders') || '[]');
+                
+                // Combine and mark with source
+                this.orders = [
+                    ...localOrders.map(order => ({ ...order, source: 'local', deviceId: this.deviceId })),
+                    ...receivedOrders.map(order => ({ ...order, source: 'remote' }))
+                ];
+                
+                this.orders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            }
+            
+            saveReceivedOrder(order) {
+                const receivedOrders = JSON.parse(localStorage.getItem('forsa_received_orders') || '[]');
+                receivedOrders.push(order);
+                localStorage.setItem('forsa_received_orders', JSON.stringify(receivedOrders));
+                this.loadLocalData();
+            }
+            
+            generateOrderCode(order) {
+                const orderData = {
+                    ...order,
+                    sharedAt: Date.now(),
+                    fromDevice: this.deviceId,
+                    fromNetwork: this.networkId
+                };
+                return btoa(JSON.stringify(orderData));
+            }
+            
+            receiveOrderFromCode(code) {
+                try {
+                    const orderData = JSON.parse(atob(code));
+                    
+                    // Check if order already exists
+                    const existingOrder = this.orders.find(o => o.orderId === orderData.orderId);
+                    if (existingOrder) {
+                        return { success: false, message: 'الطلب موجود بالفعل' };
+                    }
+                    
+                    // Add source info
+                    orderData.source = 'remote';
+                    orderData.receivedAt = Date.now();
+                    orderData.receivedBy = this.deviceId;
+                    
+                    this.saveReceivedOrder(orderData);
+                    
+                    return { success: true, message: 'تم استقبال الطلب بنجاح', order: orderData };
+                } catch (error) {
+                    return { success: false, message: 'كود غير صحيح' };
+                }
+            }
+            
+            getStats() {
+                const localOrders = this.orders.filter(o => o.source === 'local');
+                const remoteOrders = this.orders.filter(o => o.source === 'remote');
+                
+                const totalRevenue = this.orders.reduce((sum, order) => {
+                    const amount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                    return sum + (parseFloat(amount) || 0);
+                }, 0);
+                
+                return {
+                    totalOrders: this.orders.length,
+                    localOrders: localOrders.length,
+                    remoteOrders: remoteOrders.length,
+                    totalRevenue: totalRevenue
+                };
+            }
+            
+            updateDeviceInfo() {
+                document.getElementById('deviceId').textContent = this.deviceId;
+                document.getElementById('networkId').textContent = this.networkId;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+            }
+            
+            startAutoRefresh() {
+                setInterval(() => {
+                    this.loadLocalData();
+                    this.updateStats();
+                    this.displayOrders();
+                }, 5000); // Refresh every 5 seconds
+            }
+            
+            simulateOrderReceived() {
+                // Simulate receiving an order from another device
+                const simulatedOrder = {
+                    orderId: 'SIM-' + Date.now(),
+                    timestamp: Date.now(),
+                    customerName: 'عميل من جهاز آخر',
+                    customerPhone: '01234567890',
+                    totalAmount: Math.floor(Math.random() * 1000) + 500,
+                    source: 'remote',
+                    deviceId: 'DEV-SIMULATED-' + Math.random().toString(36).substr(2, 5),
+                    receivedAt: Date.now(),
+                    receivedBy: this.deviceId
+                };
+                
+                this.saveReceivedOrder(simulatedOrder);
+                return simulatedOrder;
+            }
+        }
+        
+        // Initialize database
+        const multiDB = new MultiDeviceDB();
+        
+        // UI Functions
+        function refreshData() {
+            multiDB.loadLocalData();
+            updateStats();
+            displayOrders();
+            multiDB.updateDeviceInfo();
+            showNotification('تم تحديث البيانات!', 'success');
+        }
+        
+        function updateStats() {
+            const stats = multiDB.getStats();
+            document.getElementById('totalOrders').textContent = stats.totalOrders;
+            document.getElementById('localOrders').textContent = stats.localOrders;
+            document.getElementById('remoteOrders').textContent = stats.remoteOrders;
+            document.getElementById('totalRevenue').textContent = stats.totalRevenue.toLocaleString();
+            document.getElementById('ordersCount').textContent = stats.totalOrders + ' طلب';
+        }
+        
+        function displayOrders() {
+            const container = document.getElementById('ordersContainer');
+            const orders = multiDB.orders;
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>لا توجد طلبات بعد</h3>
+                        <p>ستظهر هنا الطلبات من هذا الجهاز والأجهزة الأخرى</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => {
+                const date = new Date(order.timestamp || Date.now());
+                const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
+                const customerPhone = order.customer ? order.customer.phone : order.customerPhone || 'غير محدد';
+                const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                const isRemote = order.source === 'remote';
+                const deviceInfo = isRemote ? (order.deviceId || 'جهاز مجهول') : 'هذا الجهاز';
+                
+                return `
+                    <div class="order-item ${isRemote ? 'remote' : ''}">
+                        <div class="device-badge ${isRemote ? 'remote' : ''}">
+                            ${isRemote ? '📱 جهاز آخر' : '🏠 محلي'}
+                        </div>
+                        <div class="order-header">
+                            <div class="order-id">${order.orderId || order.id}</div>
+                            <div class="order-date">${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0;">
+                            <div style="background: white; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 0.8em; color: #6c757d; margin-bottom: 5px;">العميل</div>
+                                <div style="font-weight: bold;">${customerName}</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 0.8em; color: #6c757d; margin-bottom: 5px;">الهاتف</div>
+                                <div style="font-weight: bold;">${customerPhone}</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 0.8em; color: #6c757d; margin-bottom: 5px;">المبلغ</div>
+                                <div style="font-weight: bold; color: #28a745;">${totalAmount} جنيه</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px;">
+                                <div style="font-size: 0.8em; color: #6c757d; margin-bottom: 5px;">المصدر</div>
+                                <div style="font-weight: bold;">${deviceInfo}</div>
+                            </div>
+                        </div>
+                        ${!isRemote ? `
+                            <button class="btn btn-info" style="margin-top: 10px; padding: 8px 15px; font-size: 12px;" onclick="shareOrder('${order.orderId || order.id}')">
+                                <i class="fas fa-share"></i> مشاركة هذا الطلب
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function listenForOrders() {
+            if (multiDB.isListening) {
+                multiDB.isListening = false;
+                showNotification('تم إيقاف الاستقبال', 'warning');
+                return;
+            }
+            
+            multiDB.isListening = true;
+            showNotification('تم تشغيل وضع الاستقبال - جاهز لاستقبال الطلبات', 'success');
+            
+            // Simulate receiving an order after 3 seconds (for demo)
+            setTimeout(() => {
+                if (multiDB.isListening) {
+                    const simulatedOrder = multiDB.simulateOrderReceived();
+                    refreshData();
+                    showNotification(`تم استقبال طلب جديد من جهاز آخر: ${simulatedOrder.orderId}`, 'success');
+                }
+            }, 3000);
+        }
+        
+        function shareOrder(orderId) {
+            const order = multiDB.orders.find(o => (o.orderId || o.id) === orderId);
+            if (!order) {
+                showNotification('لم يتم العثور على الطلب', 'error');
+                return;
+            }
+            
+            const orderCode = multiDB.generateOrderCode(order);
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(orderCode).then(() => {
+                showNotification('تم نسخ كود الطلب! شاركه مع الأجهزة الأخرى', 'success');
+                
+                // Show in a prompt as well
+                prompt('كود الطلب للمشاركة (تم نسخه تلقائياً):', orderCode);
+            }).catch(() => {
+                prompt('كود الطلب للمشاركة:', orderCode);
+            });
+        }
+        
+        function receiveOrder() {
+            const code = document.getElementById('orderCodeInput').value.trim();
+            if (!code) {
+                showNotification('يرجى إدخال كود الطلب', 'error');
+                return;
+            }
+            
+            const result = multiDB.receiveOrderFromCode(code);
+            
+            if (result.success) {
+                document.getElementById('orderCodeInput').value = '';
+                refreshData();
+                showNotification(result.message + ': ' + result.order.orderId, 'success');
+            } else {
+                showNotification(result.message, 'error');
+            }
+        }
+        
+        function generateTestOrder() {
+            // Create a test order with complete data
+            const testOrder = {
+                orderId: 'TEST-' + Date.now(),
+                timestamp: Date.now(),
+                customer: {
+                    name: 'عميل تجريبي',
+                    phone: '01234567890',
+                    email: 'test@customer.com',
+                    city: 'القاهرة',
+                    address: 'عنوان تجريبي'
+                },
+                products: [{
+                    name: 'حقيبة تجريبية',
+                    price: 750,
+                    quantity: 1
+                }],
+                totals: {
+                    totalAmount: 750
+                },
+                paymentMethod: 'cash_on_delivery'
+            };
+            
+            // Save as local order
+            const localOrders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+            localOrders.push(testOrder);
+            localStorage.setItem('forsa_complete_orders', JSON.stringify(localOrders));
+            
+            // Generate share code
+            const orderCode = multiDB.generateOrderCode(testOrder);
+            
+            refreshData();
+            prompt('كود مشاركة الطلب التجريبي (تم نسخه تلقائياً):', orderCode);
+            navigator.clipboard.writeText(orderCode);
+            showNotification('تم إنشاء طلب تجريبي ونسخ كود مشاركته!', 'success');
+        }
+        
+        function simulateRemoteOrder() {
+            // Create a realistic order from "another device"
+            const remoteOrder = {
+                orderId: 'REMOTE-' + Date.now(),
+                timestamp: Date.now(),
+                customer: {
+                    name: 'عميلة من جهاز آخر',
+                    phone: '01098765432',
+                    email: 'remote@customer.com',
+                    city: 'الجيزة',
+                    address: 'عنوان من جهاز آخر'
+                },
+                products: [{
+                    name: 'حقيبة من جهاز آخر',
+                    price: 920,
+                    quantity: 2
+                }],
+                totals: {
+                    totalAmount: 1840
+                },
+                paymentMethod: 'cash_on_delivery',
+                source: 'remote',
+                deviceId: 'DEVICE-SIMULATOR-' + Math.random().toString(36).substr(2, 8),
+                receivedAt: Date.now(),
+                receivedBy: multiDB.deviceId
+            };
+            
+            // Simulate receiving this order
+            multiDB.saveReceivedOrder(remoteOrder);
+            refreshData();
+            showNotification('تم محاكاة استقبال طلب من جهاز آخر!', 'success');
+        }
+        
+        function shareNetworkCode() {
+            const networkCode = btoa(JSON.stringify({
+                networkId: multiDB.networkId,
+                deviceId: multiDB.deviceId,
+                sharedAt: Date.now()
+            }));
+            
+            document.getElementById('qrCodeDisplay').innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; font-family: monospace; word-break: break-all; font-size: 12px;">
+                    ${networkCode}
+                </div>
+            `;
+            document.getElementById('qrCodeSection').style.display = 'block';
+            
+            navigator.clipboard.writeText(networkCode);
+            showNotification('تم نسخ كود الشبكة!', 'success');
+        }
+        
+        function exportAllData() {
+            const data = {
+                deviceId: multiDB.deviceId,
+                networkId: multiDB.networkId,
+                exportedAt: new Date().toISOString(),
+                orders: multiDB.orders,
+                stats: multiDB.getStats()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `forsa_multi_device_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('تم تصدير جميع البيانات!', 'success');
+        }
+        
+        function clearAllData() {
+            if (confirm('هل أنت متأكد من حذف جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                localStorage.removeItem('forsa_received_orders');
+                multiDB.loadLocalData();
+                refreshData();
+                showNotification('تم حذف البيانات المستقبلة من الأجهزة الأخرى', 'warning');
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                font-weight: bold;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 4000);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+        });
+    </script>
+</body>
+</html>

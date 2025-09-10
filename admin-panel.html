@@ -404,9 +404,12 @@
             <!-- Quick setup button when not connected -->
             <div id="quickSetupAlert" style="display: none; background: #ff6b6b; color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 20px 0;">
                 <h3 style="margin: 0 0 10px 0;">⚠️ لا يمكن عرض الطلبات من الأجهزة الأخرى</h3>
-                <p style="margin: 10px 0;">يتم عرض الطلبات المحلية فقط. لرؤية جميع الطلبات من كل الأجهزة، يجب إعداد Google Sheets</p>
-                <button onclick="setupGoogleSheets()" style="background: white; color: #ff6b6b; font-weight: bold; padding: 15px 30px; font-size: 16px;">
-                    🚀 إعداد Google Sheets النهائي الآن (رابط ثابت مدى الحياة)
+                <p style="margin: 10px 0;">يتم عرض الطلبات المحلية فقط. لرؤية جميع الطلبات من كل الأجهزة، استعمل قاعدة البيانات المحلية المتقدمة</p>
+                <button onclick="openLocalDatabase()" style="background: white; color: #ff6b6b; font-weight: bold; padding: 15px 30px; font-size: 16px; margin: 5px;">
+                    🚀 قاعدة البيانات المحلية (أبسط وأفضل)
+                </button>
+                <button onclick="setupGoogleSheets()" style="background: rgba(255,255,255,0.2); color: white; font-weight: bold; padding: 10px 20px; font-size: 14px; margin: 5px;">
+                    ⚙️ Google Sheets (معقد)
                 </button>
             </div>
         </div>
@@ -446,8 +449,8 @@
             <button class="btn btn-primary" onclick="exportToExcel()">
                 <i class="fas fa-download"></i> تصدير البيانات
             </button>
-            <button class="btn btn-teal" onclick="syncData()">
-                <i class="fas fa-sync"></i> مزامنة البيانات
+            <button class="btn btn-teal" onclick="openLocalDatabase()">
+                <i class="fas fa-database"></i> قاعدة البيانات المحلية
             </button>
             <button class="btn btn-warning" onclick="setupGoogleSheets()">
                 <i class="fas fa-cog"></i> إعداد Google Sheets النهائي
@@ -909,8 +912,16 @@
             syncFromGoogleSheets();
         }
 
+        function openLocalDatabase() {
+            window.open('local-database.html', '_blank');
+        }
+        
         function setupGoogleSheets() {
-            window.open('stable-google-sheets-setup.html', '_blank');
+            if (confirm('مش أحسن نستعمل قاعدة البيانات المحلية المتقدمة بدلاً من Google Sheets؟ \n\nقاعدة البيانات المحلية أبسط وأسرع ومافيش تعقيدات!')) {
+                window.open('local-database.html', '_blank');
+            } else {
+                window.open('stable-google-sheets-setup.html', '_blank');
+            }
         }
         
         // Debug function to check data status

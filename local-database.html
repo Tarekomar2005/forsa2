@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قاعدة البيانات المحلية المتقدمة - Forsa</title>
+    <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #b02e2e;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .database-status {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .btn-success { background: linear-gradient(135deg, #28a745, #20c997); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107, #ff8c00); }
+        .btn-danger { background: linear-gradient(135deg, #dc3545, #c82333); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8, #138496); }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .data-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 30px 0;
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .table-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .order-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .order-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .order-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .order-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .detail-label {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .sync-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-database"></i> قاعدة البيانات المحلية المتقدمة</h1>
+        
+        <div class="database-status">
+            <i class="fas fa-server"></i> قاعدة بيانات محلية نشطة - تعمل بكفاءة عالية وبدون تعقيدات
+        </div>
+        
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">إجمالي الطلبات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">0</div>
+                <div class="stat-label">إجمالي الإيرادات (جنيه)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalContacts">0</div>
+                <div class="stat-label">رسائل التواصل</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="databaseSize">0</div>
+                <div class="stat-label">حجم قاعدة البيانات (KB)</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshDatabase()">
+                <i class="fas fa-sync-alt"></i> تحديث البيانات
+            </button>
+            <button class="btn btn-success" onclick="exportAllData()">
+                <i class="fas fa-download"></i> تصدير جميع البيانات
+            </button>
+            <button class="btn btn-warning" onclick="generateSyncCode()">
+                <i class="fas fa-code"></i> كود المزامنة
+            </button>
+            <button class="btn btn-info" onclick="addTestData()">
+                <i class="fas fa-plus"></i> إضافة بيانات تجريبية
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> مسح جميع البيانات
+            </button>
+        </div>
+        
+        <div class="data-table">
+            <div class="table-header">
+                <i class="fas fa-list"></i> الطلبات الكاملة
+            </div>
+            <div class="table-content" id="ordersContainer">
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>لا توجد طلبات بعد</h3>
+                    <p>ستظهر هنا جميع الطلبات المسجلة</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table">
+            <div class="table-header">
+                <i class="fas fa-envelope"></i> رسائل التواصل
+            </div>
+            <div class="table-content" id="contactsContainer">
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>لا توجد رسائل بعد</h3>
+                    <p>ستظهر هنا جميع رسائل التواصل</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="syncCodeContainer" style="display: none;">
+            <h3>كود المزامنة بين الأجهزة</h3>
+            <p>انسخ هذا الكود واستخدمه في أي جهاز آخر لمزامنة البيانات:</p>
+            <div class="sync-code" id="syncCodeDisplay"></div>
+            <button class="btn btn-primary" onclick="copySyncCode()">
+                <i class="fas fa-copy"></i> نسخ كود المزامنة
+            </button>
+            <button class="btn btn-success" onclick="applySyncCode()">
+                <i class="fas fa-upload"></i> تطبيق كود مزامنة
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Advanced Local Database Manager
+        class LocalDatabase {
+            constructor() {
+                this.dbName = 'forsa_local_db';
+                this.version = '1.0';
+                this.init();
+            }
+            
+            init() {
+                // Initialize database structure if not exists
+                if (!localStorage.getItem(this.dbName + '_initialized')) {
+                    this.createTables();
+                    localStorage.setItem(this.dbName + '_initialized', 'true');
+                    localStorage.setItem(this.dbName + '_version', this.version);
+                    localStorage.setItem(this.dbName + '_created', new Date().toISOString());
+                }
+                this.loadData();
+            }
+            
+            createTables() {
+                // Create empty tables
+                localStorage.setItem('forsa_complete_orders', JSON.stringify([]));
+                localStorage.setItem('forsa_contacts', JSON.stringify([]));
+                localStorage.setItem('forsa_quick_orders', JSON.stringify([]));
+                localStorage.setItem('forsa_settings', JSON.stringify({}));
+            }
+            
+            loadData() {
+                this.orders = JSON.parse(localStorage.getItem('forsa_complete_orders') || '[]');
+                this.contacts = JSON.parse(localStorage.getItem('forsa_contacts') || '[]');
+                this.quickOrders = JSON.parse(localStorage.getItem('forsa_quick_orders') || '[]');
+                this.settings = JSON.parse(localStorage.getItem('forsa_settings') || '{}');
+            }
+            
+            saveData() {
+                localStorage.setItem('forsa_complete_orders', JSON.stringify(this.orders));
+                localStorage.setItem('forsa_contacts', JSON.stringify(this.contacts));
+                localStorage.setItem('forsa_quick_orders', JSON.stringify(this.quickOrders));
+                localStorage.setItem('forsa_settings', JSON.stringify(this.settings));
+            }
+            
+            addOrder(order) {
+                order.id = order.id || 'ORD-' + Date.now();
+                order.timestamp = order.timestamp || Date.now();
+                order.device = navigator.userAgent;
+                this.orders.push(order);
+                this.saveData();
+                return order.id;
+            }
+            
+            addContact(contact) {
+                contact.id = contact.id || 'CNT-' + Date.now();
+                contact.timestamp = contact.timestamp || Date.now();
+                contact.device = navigator.userAgent;
+                this.contacts.push(contact);
+                this.saveData();
+                return contact.id;
+            }
+            
+            getOrders() {
+                return this.orders.sort((a, b) => b.timestamp - a.timestamp);
+            }
+            
+            getContacts() {
+                return this.contacts.sort((a, b) => b.timestamp - a.timestamp);
+            }
+            
+            getStats() {
+                const totalRevenue = this.orders.reduce((sum, order) => {
+                    return sum + (parseFloat(order.totalAmount) || 0);
+                }, 0);
+                
+                const dbSize = this.getDatabaseSize();
+                
+                return {
+                    totalOrders: this.orders.length,
+                    totalContacts: this.contacts.length,
+                    totalRevenue: totalRevenue,
+                    databaseSize: Math.round(dbSize / 1024)
+                };
+            }
+            
+            getDatabaseSize() {
+                let total = 0;
+                for (let key in localStorage) {
+                    if (key.startsWith('forsa_')) {
+                        total += localStorage[key].length;
+                    }
+                }
+                return total;
+            }
+            
+            exportAll() {
+                return {
+                    metadata: {
+                        exported: new Date().toISOString(),
+                        version: this.version,
+                        device: navigator.userAgent
+                    },
+                    orders: this.orders,
+                    contacts: this.contacts,
+                    quickOrders: this.quickOrders,
+                    settings: this.settings
+                };
+            }
+            
+            importAll(data) {
+                if (data.orders) this.orders = [...this.orders, ...data.orders];
+                if (data.contacts) this.contacts = [...this.contacts, ...data.contacts];
+                if (data.quickOrders) this.quickOrders = [...this.quickOrders, ...data.quickOrders];
+                this.saveData();
+            }
+            
+            clearAll() {
+                this.orders = [];
+                this.contacts = [];
+                this.quickOrders = [];
+                this.saveData();
+            }
+            
+            generateSyncCode() {
+                const data = this.exportAll();
+                return btoa(JSON.stringify(data));
+            }
+            
+            applySyncCode(code) {
+                try {
+                    const data = JSON.parse(atob(code));
+                    this.importAll(data);
+                    return true;
+                } catch (error) {
+                    console.error('Invalid sync code:', error);
+                    return false;
+                }
+            }
+        }
+        
+        // Initialize database
+        const db = new LocalDatabase();
+        
+        // UI Functions
+        function refreshDatabase() {
+            db.loadData();
+            updateStats();
+            displayOrders();
+            displayContacts();
+            showNotification('تم تحديث البيانات بنجاح!', 'success');
+        }
+        
+        function updateStats() {
+            const stats = db.getStats();
+            document.getElementById('totalOrders').textContent = stats.totalOrders;
+            document.getElementById('totalRevenue').textContent = stats.totalRevenue.toLocaleString();
+            document.getElementById('totalContacts').textContent = stats.totalContacts;
+            document.getElementById('databaseSize').textContent = stats.databaseSize;
+        }
+        
+        function displayOrders() {
+            const container = document.getElementById('ordersContainer');
+            const orders = db.getOrders();
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>لا توجد طلبات بعد</h3>
+                        <p>ستظهر هنا جميع الطلبات المسجلة</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => {
+                const date = new Date(order.timestamp);
+                const customerName = order.customer ? order.customer.name : order.customerName || 'غير محدد';
+                const customerPhone = order.customer ? order.customer.phone : order.customerPhone || 'غير محدد';
+                const totalAmount = order.totals ? order.totals.totalAmount : order.totalAmount || 0;
+                
+                return `
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-id">${order.orderId || order.id}</div>
+                            <div class="order-date">${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</div>
+                        </div>
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <div class="detail-label">اسم العميل</div>
+                                <div class="detail-value">${customerName}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">رقم الهاتف</div>
+                                <div class="detail-value">${customerPhone}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">إجمالي المبلغ</div>
+                                <div class="detail-value">${totalAmount} جنيه</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">طريقة الدفع</div>
+                                <div class="detail-value">${order.paymentMethod || 'غير محدد'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function displayContacts() {
+            const container = document.getElementById('contactsContainer');
+            const contacts = db.getContacts();
+            
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>لا توجد رسائل بعد</h3>
+                        <p>ستظهر هنا جميع رسائل التواصل</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = contacts.map(contact => {
+                const date = new Date(contact.timestamp);
+                
+                return `
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-id">${contact.name}</div>
+                            <div class="order-date">${date.toLocaleDateString('ar-EG')} ${date.toLocaleTimeString('ar-EG')}</div>
+                        </div>
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <div class="detail-label">البريد الإلكتروني</div>
+                                <div class="detail-value">${contact.email || 'غير محدد'}</div>
+                            </div>
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <div class="detail-label">الرسالة</div>
+                                <div class="detail-value">${contact.message}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function exportAllData() {
+            const data = db.exportAll();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `forsa_database_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('تم تصدير جميع البيانات بنجاح!', 'success');
+        }
+        
+        function generateSyncCode() {
+            const syncCode = db.generateSyncCode();
+            document.getElementById('syncCodeDisplay').textContent = syncCode;
+            document.getElementById('syncCodeContainer').style.display = 'block';
+            showNotification('تم إنشاء كود المزامنة!', 'success');
+        }
+        
+        function copySyncCode() {
+            const code = document.getElementById('syncCodeDisplay').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showNotification('تم نسخ كود المزامنة!', 'success');
+            });
+        }
+        
+        function applySyncCode() {
+            const code = prompt('أدخل كود المزامنة:');
+            if (code) {
+                if (db.applySyncCode(code)) {
+                    refreshDatabase();
+                    showNotification('تم تطبيق كود المزامنة بنجاح!', 'success');
+                } else {
+                    showNotification('كود المزامنة غير صحيح!', 'error');
+                }
+            }
+        }
+        
+        function addTestData() {
+            // Add test order
+            db.addOrder({
+                orderId: 'TEST-' + Date.now(),
+                customer: {
+                    name: 'عميلة تجريبية',
+                    phone: '01234567890',
+                    email: 'test@example.com',
+                    city: 'القاهرة',
+                    address: 'عنوان تجريبي'
+                },
+                products: [
+                    { name: 'حقيبة تجريبية', price: 500, quantity: 1 }
+                ],
+                totalAmount: 500,
+                paymentMethod: 'cash_on_delivery'
+            });
+            
+            // Add test contact
+            db.addContact({
+                name: 'مراسل تجريبي',
+                email: 'contact@example.com',
+                message: 'هذه رسالة تجريبية من النظام'
+            });
+            
+            refreshDatabase();
+            showNotification('تم إضافة بيانات تجريبية!', 'success');
+        }
+        
+        function clearAllData() {
+            if (confirm('هل أنت متأكد من حذف جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                db.clearAll();
+                refreshDatabase();
+                showNotification('تم حذف جميع البيانات!', 'warning');
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            // Create notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                font-weight: bold;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDatabase();
+        });
+    </script>
+</body>
+</html>
