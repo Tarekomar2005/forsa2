@@ -98,14 +98,29 @@
                 
                 document.body.appendChild(redirectMessage);
                 
-                // Auto-redirect after 3 seconds
+                // Auto-redirect after 3 seconds - use dynamic server URL
                 setTimeout(() => {
-                    window.location.href = 'http://localhost:3001/';
+                    const serverUrl = getServerUrl();
+                    window.location.href = serverUrl + '/';
                 }, 3000);
                 
                 return false; // Stop normal page loading
             }
             return true; // Continue normal page loading
+        }
+        
+        // Get current server URL dynamically
+        function getServerUrl() {
+            const currentHost = window.location.host;
+            const protocol = window.location.protocol;
+            
+            // If accessing via IP or domain, use current host
+            if (currentHost && currentHost !== '') {
+                return `${protocol}//${currentHost}`;
+            }
+            
+            // Fallback to localhost
+            return 'http://localhost:3001';
         }
         
         // Auto-redirect to server if accessed directly as file
@@ -159,7 +174,8 @@
                 
                 // Redirect to auth page after showing message
                 setTimeout(() => {
-                    window.location.href = '/auth';
+                    const serverUrl = getServerUrl();
+                    window.location.href = serverUrl + '/auth';
                 }, 2000);
                 
                 return; // Stop loading the rest of the page

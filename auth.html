@@ -357,6 +357,20 @@
     </div>
 
     <script>
+        // Get current server URL dynamically for API calls
+        function getServerUrl() {
+            const currentHost = window.location.host;
+            const protocol = window.location.protocol;
+            
+            // If accessing via IP or domain, use current host
+            if (currentHost && currentHost !== '') {
+                return `${protocol}//${currentHost}`;
+            }
+            
+            // Fallback to localhost
+            return 'http://localhost:3001';
+        }
+
         // Authentication System
         class AuthSystem {
             constructor() {
@@ -462,7 +476,8 @@
 
                     console.log('Attempting login with email:', email);
                     
-                    const response = await fetch('/api/auth/login', {
+                    const serverUrl = getServerUrl();
+                    const response = await fetch(`${serverUrl}/api/auth/login`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -483,10 +498,11 @@
                         const returnUrl = urlParams.get('return');
                         
                         setTimeout(() => {
+                            const serverUrl = getServerUrl();
                             if (returnUrl === 'checkout') {
-                                window.location.href = '/?return=checkout';
+                                window.location.href = `${serverUrl}/?return=checkout`;
                             } else {
-                                window.location.href = '/';
+                                window.location.href = `${serverUrl}/`;
                             }
                         }, 1500);
                     } else {
@@ -538,7 +554,8 @@
 
                     console.log('Attempting registration with:', { name, email, phone });
                     
-                    const response = await fetch('/api/auth/register', {
+                    const serverUrl = getServerUrl();
+                    const response = await fetch(`${serverUrl}/api/auth/register`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -560,11 +577,12 @@
                             // Check if user came from checkout
                             const urlParams = new URLSearchParams(window.location.search);
                             const returnUrl = urlParams.get('return');
+                            const serverUrl = getServerUrl();
                             
                             if (returnUrl === 'checkout') {
-                                window.location.href = '/?return=checkout';
+                                window.location.href = `${serverUrl}/?return=checkout`;
                             } else {
-                                window.location.href = '/';
+                                window.location.href = `${serverUrl}/`;
                             }
                         }, 2000);
                     } else {

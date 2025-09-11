@@ -1,4 +1,26 @@
 // Mobile Navigation Toggle
+// =============================================
+// SERVER URL HELPER
+// =============================================
+
+// Get current server URL dynamically for API calls
+function getServerUrl() {
+    const currentHost = window.location.host;
+    const protocol = window.location.protocol;
+    
+    // If accessing via IP or domain, use current host
+    if (currentHost && currentHost !== '') {
+        return `${protocol}//${currentHost}`;
+    }
+    
+    // Fallback to localhost
+    return 'http://localhost:3001';
+}
+
+// =============================================
+// MOBILE NAVIGATION
+// =============================================
+
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
@@ -1056,7 +1078,8 @@ async function saveCompleteOrderData() {
         const token = sessionData.token;
 
         // Save to backend API
-        const response = await fetch('/api/orders', {
+        const serverUrl = getServerUrl();
+        const response = await fetch(`${serverUrl}/api/orders`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

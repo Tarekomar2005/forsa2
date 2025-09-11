@@ -356,6 +356,20 @@
     </div>
 
     <script>
+        // Get current server URL dynamically for API calls
+        function getServerUrl() {
+            const currentHost = window.location.host;
+            const protocol = window.location.protocol;
+            
+            // If accessing via IP or domain, use current host
+            if (currentHost && currentHost !== '') {
+                return `${protocol}//${currentHost}`;
+            }
+            
+            // Fallback to localhost
+            return 'http://localhost:3001';
+        }
+
         class AdminPanel {
             constructor() {
                 this.currentUser = null;
@@ -395,7 +409,8 @@
             async makeAPICall(endpoint, options = {}) {
                 try {
                     // Direct API call to admin endpoints (no authentication required)
-                    const apiUrl = `http://localhost:3001/api${endpoint}`;
+                    const serverUrl = getServerUrl();
+                    const apiUrl = `${serverUrl}/api${endpoint}`;
                     console.log('Making API call to:', apiUrl);
                     
                     const response = await fetch(apiUrl, {
@@ -634,7 +649,8 @@
             }
 
             goToMainSite() {
-                window.location.href = 'index.html';
+                const serverUrl = getServerUrl();
+                window.location.href = `${serverUrl}/`;
             }
 
             logout() {
