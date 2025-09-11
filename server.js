@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'forsa_secret_key_2024';
 
 // Simple JSON file database (for demo without MongoDB)
-const DB_PATH = path.join(__dirname, 'database.json');
+// Use /tmp directory in production (Vercel)
+const DB_PATH = process.env.NODE_ENV === 'production' 
+    ? '/tmp/database.json' 
+    : path.join(__dirname, 'database.json');
 
 // Initialize database file
 if (!fs.existsSync(DB_PATH)) {
@@ -360,6 +363,10 @@ app.get('/test', (req, res) => {
     res.sendFile(path.join(__dirname, 'test.html'));
 });
 
+app.get('/debug', (req, res) => {
+    res.sendFile(path.join(__dirname, 'debug.html'));
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ 
@@ -369,20 +376,26 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Forsa Server running on http://localhost:${PORT}`);
-    console.log(`🌐 External access: http://192.168.1.7:${PORT}`);
-    console.log(`📊 Database: JSON File Database`);
-    console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 10)}...`);
-    console.log(`\n📱 Access URLs:`);
-    console.log(`   Local Authentication: http://localhost:${PORT}/auth`);
-    console.log(`   External Authentication: http://192.168.1.7:${PORT}/auth`);
-    console.log(`   Local Main Website: http://localhost:${PORT}/`);
-    console.log(`   External Main Website: http://192.168.1.7:${PORT}/`);
-    console.log(`   Local Admin Panel: http://localhost:${PORT}/admin`);
-    console.log(`   External Admin Panel: http://192.168.1.7:${PORT}/admin`);
-    console.log(`\n🔗 Share this URL with other devices: http://192.168.1.7:${PORT}`);
-});
+// Start server (only in development)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Forsa Server running on http://localhost:${PORT}`);
+        console.log(`🌐 External access: http://192.168.1.7:${PORT}`);
+        console.log(`📊 Database: JSON File Database`);
+        console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 10)}...`);
+        console.log(`\n📱 Access URLs:`);
+        console.log(`   Local Authentication: http://localhost:${PORT}/auth`);
+        console.log(`   External Authentication: http://192.168.1.7:${PORT}/auth`);
+        console.log(`   Local Main Website: http://localhost:${PORT}/`);
+        console.log(`   External Main Website: http://192.168.1.7:${PORT}/`);
+        console.log(`   Local Admin Panel: http://localhost:${PORT}/admin`);
+        console.log(`   External Admin Panel: http://192.168.1.7:${PORT}/admin`);
+        console.log(`\n🔧 Debug Tools:`);
+        console.log(`   Connection Test: http://192.168.1.7:${PORT}/test`);
+        console.log(`   Session Debug: http://192.168.1.7:${PORT}/debug`);
+        console.log(`\n🔗 Share this URL with other devices: http://192.168.1.7:${PORT}`);
+    });
+}
 
+// Export for Vercel
 module.exports = app;

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تشخيص الجلسة - Forsa</title>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .debug-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+        .debug-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        .debug-info {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="debug-title">🔍 تشخيص حالة الجلسة</div>
+        
+        <div class="debug-info">
+            <div><strong>🌐 معلومات الخادم:</strong></div>
+            <div>URL: <span id="currentUrl"></span></div>
+            <div>Host: <span id="currentHost"></span></div>
+            <div>Protocol: <span id="currentProtocol"></span></div>
+        </div>
+
+        <div class="debug-info">
+            <div><strong>💾 حالة التخزين المحلي:</strong></div>
+            <div id="sessionInfo"></div>
+        </div>
+
+        <div class="debug-info">
+            <div><strong>🔐 نتيجة فحص المصادقة:</strong></div>
+            <div id="authResult"></div>
+        </div>
+
+        <div class="debug-info">
+            <div><strong>🔧 اختبار API:</strong></div>
+            <div id="apiTest"></div>
+        </div>
+
+        <div>
+            <button class="btn" onclick="testRegistration()">اختبار التسجيل</button>
+            <button class="btn" onclick="clearSession()">مسح الجلسة</button>
+            <button class="btn" onclick="goToAuth()">صفحة التسجيل</button>
+            <button class="btn" onclick="goToMain()">الموقع الرئيسي</button>
+        </div>
+    </div>
+
+    <script>
+        // Get current server URL dynamically
+        function getServerUrl() {
+            const currentHost = window.location.host;
+            const protocol = window.location.protocol;
+            
+            if (currentHost && currentHost !== '') {
+                return `${protocol}//${currentHost}`;
+            }
+            
+            return 'http://localhost:3001';
+        }
+
+        // Authentication Check - Same as main site
+        function checkAuthentication() {
+            const session = localStorage.getItem('forsa_session');
+            if (!session) {
+                return { valid: false, reason: 'No session found' };
+            }
+            
+            try {
+                const sessionData = JSON.parse(session);
+                const expiresAt = new Date(sessionData.expires_at);
+                
+                if (expiresAt <= new Date()) {
+                    localStorage.removeItem('forsa_session');
+                    return { valid: false, reason: 'Session expired', sessionData };
+                }
+                
+                window.currentUser = sessionData.user;
+                return { valid: true, reason: 'Valid session', sessionData };
+            } catch (error) {
+                localStorage.removeItem('forsa_session');
+                return { valid: false, reason: 'Invalid session data', error: error.message };
+            }
+        }
+
+        // Display debug information
+        function displayDebugInfo() {
+            // Server info
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('currentHost').textContent = window.location.host;
+            document.getElementById('currentProtocol').textContent = window.location.protocol;
+
+            // Session info
+            const session = localStorage.getItem('forsa_session');
+            let sessionHtml = '';
+            if (session) {
+                try {
+                    const sessionData = JSON.parse(session);
+                    sessionHtml = `
+                        <div class="success">✅ جلسة موجودة</div>
+                        <div>User ID: ${sessionData.user_id}</div>
+                        <div>User Name: ${sessionData.user?.name}</div>
+                        <div>User Email: ${sessionData.user?.email}</div>
+                        <div>Created: ${sessionData.created_at}</div>
+                        <div>Expires: ${sessionData.expires_at}</div>
+                        <div>Token: ${sessionData.token ? sessionData.token.substring(0, 20) + '...' : 'No token'}</div>
+                    `;
+                } catch (e) {
+                    sessionHtml = `<div class="error">❌ جلسة تالفة: ${e.message}</div>`;
+                }
+            } else {
+                sessionHtml = '<div class="warning">⚠️ لا توجد جلسة</div>';
+            }
+            document.getElementById('sessionInfo').innerHTML = sessionHtml;
+
+            // Auth result
+            const authResult = checkAuthentication();
+            let authHtml = '';
+            if (authResult.valid) {
+                authHtml = `
+                    <div class="success">✅ مصادقة صحيحة</div>
+                    <div>السبب: ${authResult.reason}</div>
+                `;
+            } else {
+                authHtml = `
+                    <div class="error">❌ مصادقة فاشلة</div>
+                    <div>السبب: ${authResult.reason}</div>
+                    ${authResult.error ? `<div>خطأ: ${authResult.error}</div>` : ''}
+                `;
+            }
+            document.getElementById('authResult').innerHTML = authHtml;
+        }
+
+        // Test API connection
+        async function testAPI() {
+            try {
+                const serverUrl = getServerUrl();
+                const response = await fetch(`${serverUrl}/api/health`);
+                const data = await response.json();
+                
+                document.getElementById('apiTest').innerHTML = `
+                    <div class="success">✅ API يعمل</div>
+                    <div>Status: ${data.status}</div>
+                    <div>Database: ${data.database}</div>
+                `;
+            } catch (error) {
+                document.getElementById('apiTest').innerHTML = `
+                    <div class="error">❌ خطأ API: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Test registration
+        async function testRegistration() {
+            const testEmail = `test_${Date.now()}@example.com`;
+            const testData = {
+                name: 'Test User',
+                email: testEmail,
+                phone: '01234567890',
+                password: 'Test123!'
+            };
+
+            try {
+                const serverUrl = getServerUrl();
+                const response = await fetch(`${serverUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Create session
+                    const sessionData = {
+                        user_id: data.user.id,
+                        user: data.user,
+                        token: data.token,
+                        created_at: new Date().toISOString(),
+                        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                    };
+                    localStorage.setItem('forsa_session', JSON.stringify(sessionData));
+                    
+                    alert('تم إنشاء حساب تجريبي بنجاح!');
+                    displayDebugInfo();
+                } else {
+                    alert('خطأ في التسجيل: ' + data.message);
+                }
+            } catch (error) {
+                alert('خطأ في الشبكة: ' + error.message);
+            }
+        }
+
+        function clearSession() {
+            localStorage.removeItem('forsa_session');
+            alert('تم مسح الجلسة');
+            displayDebugInfo();
+        }
+
+        function goToAuth() {
+            const serverUrl = getServerUrl();
+            window.location.href = `${serverUrl}/auth`;
+        }
+
+        function goToMain() {
+            const serverUrl = getServerUrl();
+            window.location.href = `${serverUrl}/`;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            displayDebugInfo();
+            testAPI();
+        });
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>
