@@ -36,20 +36,20 @@
         }
     </style>
     <script>
-        // Authentication Check - RETURNS TRUE/FALSE WITHOUT REDIRECTING
+        // Authentication Check - SIMPLE VERSION
         function checkAuthentication() {
-            const session = localStorage.getItem('forsa_session');
+            const session = localStorage.getItem('forsa_simple_session');
             if (!session) {
                 return false; // No session
             }
             
             try {
                 const sessionData = JSON.parse(session);
-                const expiresAt = new Date(sessionData.expires_at);
+                const expiresAt = new Date(sessionData.expires);
                 
                 if (expiresAt <= new Date()) {
                     // Session expired
-                    localStorage.removeItem('forsa_session');
+                    localStorage.removeItem('forsa_simple_session');
                     return false;
                 }
                 
@@ -58,15 +58,15 @@
                 return true;
             } catch (error) {
                 // Invalid session
-                localStorage.removeItem('forsa_session');
+                localStorage.removeItem('forsa_simple_session');
                 return false;
             }
         }
         
         function logout() {
             if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-                localStorage.removeItem('forsa_session');
-                window.location.href = '/auth';
+                localStorage.removeItem('forsa_simple_session');
+                window.location.href = '/auth-simple';
             }
         }
         
@@ -175,7 +175,7 @@
                 // Redirect to auth page after showing message
                 setTimeout(() => {
                     const serverUrl = getServerUrl();
-                    window.location.href = serverUrl + '/auth';
+                    window.location.href = serverUrl + '/auth-simple';
                 }, 2000);
                 
                 return; // Stop loading the rest of the page
@@ -313,7 +313,7 @@
                     </button>
                 </li>
                 <li class="nav-item" id="authButton">
-                    <a href="auth.html" class="nav-cta auth-link" id="authLink">
+                    <a href="auth-simple.html" class="nav-cta auth-link" id="authLink">
                         <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                     </a>
                 </li>

@@ -116,10 +116,28 @@ npm run dev
 
 ## 📝 Notes
 
-- Database resets on each deployment (Vercel limitation)
-- For production, consider upgrading to MongoDB
+### Database Persistence on Vercel
+- **Issue**: Vercel serverless functions don't maintain state between requests
+- **Current**: Orders persist only during single session
+- **Workaround**: Use `/api/debug/database` to check current state
+- **Solution**: For production, upgrade to external database (MongoDB, PostgreSQL)
+
+### Testing on Vercel
+1. Place an order: `https://your-app.vercel.app/`
+2. Check database: `https://your-app.vercel.app/api/debug/database`
+3. Check authentication: `https://your-app.vercel.app/api/debug/auth`
+4. View admin panel: `https://your-app.vercel.app/admin`
+5. Check Vercel function logs for detailed debugging
+
+### Debug Endpoints
+- `/api/debug/database` - Check current database state
+- `/api/debug/auth` - Test JWT token validation
+- `/api/debug/files` - Verify static files exist
+- `/api/health` - Basic server health check
+
 - Admin panel accessible without authentication for business owners
 - Supports multi-device order placement
+- For persistent data, consider upgrading to MongoDB Atlas
 
 ## 🤝 Support
 

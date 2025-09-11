@@ -10,33 +10,72 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'forsa_secret_key_2024';
 
 // Simple JSON file database (for demo without MongoDB)
-// Use /tmp directory in production (Vercel)
-const DB_PATH = process.env.NODE_ENV === 'production' 
-    ? '/tmp/database.json' 
-    : path.join(__dirname, 'database.json');
+// Use Vercel's serverless-friendly approach
+let DB_PATH;
+let inMemoryDB = null;
 
-// Initialize database file
-if (!fs.existsSync(DB_PATH)) {
-    const initialDB = {
-        users: [],
-        orders: [],
-        contacts: [],
-        counters: {
-            users: 0,
-            orders: 0,
-            contacts: 0
-        }
-    };
-    fs.writeFileSync(DB_PATH, JSON.stringify(initialDB, null, 2));
+if (process.env.NODE_ENV === 'production') {
+    // In production (Vercel), use in-memory database with external storage simulation
+    DB_PATH = '/tmp/database.json';
+    
+    // Initialize in-memory database for Vercel
+    if (!inMemoryDB) {
+        inMemoryDB = {
+            users: [],
+            orders: [],
+            contacts: [],
+            counters: {
+                users: 0,
+                orders: 0,
+                contacts: 0
+            }
+        };
+    }
+} else {
+    // Local development
+    DB_PATH = path.join(__dirname, 'database.json');
 }
 
 // Database helper functions
 function readDB() {
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    if (process.env.NODE_ENV === 'production') {
+        // In production, use in-memory database
+        return inMemoryDB;
+    } else {
+        // Local development - use file
+        try {
+            return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+        } catch (error) {
+            console.log('Database file not found, creating new one');
+            const initialDB = {
+                users: [],
+                orders: [],
+                contacts: [],
+                counters: {
+                    users: 0,
+                    orders: 0,
+                    contacts: 0
+                }
+            };
+            writeDB(initialDB);
+            return initialDB;
+        }
+    }
 }
 
 function writeDB(data) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+    if (process.env.NODE_ENV === 'production') {
+        // In production, update in-memory database
+        inMemoryDB = { ...data };
+        console.log('Database updated in memory:', {
+            users: inMemoryDB.users.length,
+            orders: inMemoryDB.orders.length,
+            contacts: inMemoryDB.contacts.length
+        });
+    } else {
+        // Local development - write to file
+        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+    }
 }
 
 function generateId(type) {
@@ -115,26 +154,88 @@ app.get('/api/debug/files', (req, res) => {
     });
 });
 
+// Debug route to check database state
+app.get('/api/debug/database', (req, res) => {
+    const db = readDB();
+    res.json({
+        database: {
+            users: db.users.length,
+            orders: db.orders.length,
+            contacts: db.contacts.length,
+            counters: db.counters
+        },
+        environment: process.env.NODE_ENV,
+        isProduction: process.env.NODE_ENV === 'production',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Debug route to check JWT and authentication
+app.get('/api/debug/auth', (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    let tokenInfo = { valid: false, error: null };
+    
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            tokenInfo = { valid: true, decoded, userId: decoded.userId };
+        } catch (error) {
+            tokenInfo = { valid: false, error: error.message };
+        }
+    }
+    
+    res.json({
+        hasAuthHeader: !!authHeader,
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 30) + '...' : null,
+        tokenInfo,
+        jwtSecret: JWT_SECRET.substring(0, 10) + '...',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Middleware for authentication
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
+    console.log('Auth attempt:', {
+        hasAuthHeader: !!authHeader,
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'none',
+        environment: process.env.NODE_ENV
+    });
+
     if (!token) {
+        console.log('No token provided');
         return res.status(401).json({ message: 'Access token required' });
     }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        console.log('Token decoded successfully:', { userId: decoded.userId });
+        
         const db = readDB();
         const user = db.users.find(u => u.id === decoded.userId);
+        
         if (!user) {
-            return res.status(401).json({ message: 'Invalid token' });
+            console.log('User not found for token:', decoded.userId);
+            return res.status(401).json({ message: 'Invalid token - user not found' });
         }
+        
+        console.log('User authenticated:', { id: user.id, name: user.name, email: user.email });
         req.user = user;
         next();
     } catch (error) {
-        return res.status(403).json({ message: 'Invalid token' });
+        console.error('Token verification failed:', error.message);
+        return res.status(403).json({ 
+            message: 'Invalid token', 
+            error: error.message,
+            tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
+        });
     }
 };
 
@@ -146,9 +247,12 @@ app.post('/api/auth/register', async (req, res) => {
         const { name, email, phone, password } = req.body;
         const db = readDB();
 
+        console.log('Registration attempt:', { email, name, currentUsers: db.users.length });
+
         // Check if user already exists
         const existingUser = db.users.find(u => u.email === email);
         if (existingUser) {
+            console.log('User already exists:', email);
             return res.status(400).json({ message: 'User already exists with this email' });
         }
 
@@ -172,8 +276,19 @@ app.post('/api/auth/register', async (req, res) => {
         db.users.push(user);
         writeDB(db);
 
+        console.log('User created successfully:', { 
+            id: user.id, 
+            email: user.email, 
+            totalUsers: db.users.length 
+        });
+
         // Generate token
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+
+        console.log('Token generated for user:', { 
+            userId: user.id, 
+            tokenPreview: token.substring(0, 20) + '...' 
+        });
 
         res.status(201).json({
             message: 'User created successfully',
@@ -197,15 +312,21 @@ app.post('/api/auth/login', async (req, res) => {
         const { email, password } = req.body;
         const db = readDB();
 
+        console.log('Login attempt:', { email, totalUsers: db.users.length });
+
         // Find user
         const user = db.users.find(u => u.email === email);
         if (!user) {
+            console.log('User not found:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        console.log('User found:', { id: user.id, email: user.email });
 
         // Check password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+            console.log('Invalid password for:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
@@ -215,6 +336,12 @@ app.post('/api/auth/login', async (req, res) => {
 
         // Generate token
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+
+        console.log('Login successful:', { 
+            userId: user.id, 
+            email: user.email,
+            tokenPreview: token.substring(0, 20) + '...' 
+        });
 
         res.json({
             message: 'Login successful',
@@ -239,6 +366,12 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         const orderData = req.body;
         const db = readDB();
         
+        console.log('Creating order - Current DB state:', {
+            users: db.users.length,
+            orders: db.orders.length,
+            environment: process.env.NODE_ENV
+        });
+        
         const order = {
             id: generateId('orders'),
             orderId: orderData.orderId || 'ORD-' + Date.now(),
@@ -255,6 +388,13 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
         db.orders.push(order);
         writeDB(db);
+        
+        console.log('Order created successfully:', {
+            orderId: order.orderId,
+            totalOrders: db.orders.length,
+            customerId: req.user.id,
+            customerName: req.user.name
+        });
 
         res.status(201).json({
             message: 'Order created successfully',
@@ -348,6 +488,13 @@ app.get('/api/admin/orders', async (req, res) => {
     try {
         const db = readDB();
         let orders = db.orders;
+        
+        console.log('Admin fetching orders - DB state:', {
+            totalOrders: orders.length,
+            totalUsers: db.users.length,
+            environment: process.env.NODE_ENV,
+            timestamp: new Date().toISOString()
+        });
         
         // Add user information to orders
         orders = orders.map(order => {

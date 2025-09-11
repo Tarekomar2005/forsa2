@@ -1042,7 +1042,7 @@ function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
 // COMPLETE ORDER DATA SAVING FUNCTION  
 // =============================================
 
-// Save complete order data to API backend
+// Save complete order data to simple local storage (no API)
 async function saveCompleteOrderData() {
     const orderData = {
         orderId: 'ORD-' + Date.now(),
@@ -1068,44 +1068,30 @@ async function saveCompleteOrderData() {
     };
     
     try {
-        // Check if user is authenticated
-        const session = localStorage.getItem('forsa_session');
+        // Check if user is authenticated (simple version)
+        const session = localStorage.getItem('forsa_simple_session');
         if (!session) {
             throw new Error('يجب تسجيل الدخول أولاً لحفظ الطلب');
         }
 
-        const sessionData = JSON.parse(session);
-        const token = sessionData.token;
-
-        // Save to backend API
-        const serverUrl = getServerUrl();
-        const response = await fetch(`${serverUrl}/api/orders`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'خطأ في حفظ الطلب');
-        }
-
-        const result = await response.json();
+        // Add timestamp and source
+        orderData.timestamp = new Date().toISOString();
+        orderData.source = 'website';
+        
+        // Save directly to local storage (no API calls)
+        saveCompleteOrderToLocalStorage(orderData);
+        
         showNotification('تم حفظ الطلب بنجاح! يمكن الوصول إليه من لوحة الإدارة.', 'success');
-        console.log('✅ Order saved to database successfully');
+        console.log('✅ Order saved to local storage successfully');
         
-        // Also save to local storage as backup
-        saveCompleteOrderToLocalStorage(result.order);
-        
-        return Promise.resolve(result.order);
+        return Promise.resolve(orderData);
         
     } catch (error) {
         console.error('❌ Error saving order:', error);
         
-        // Always save locally as backup
+        // Still save locally even if authentication fails
+        orderData.timestamp = new Date().toISOString();
+        orderData.source = 'website_anonymous';
         saveCompleteOrderToLocalStorage(orderData);
         console.log('✅ Order saved to local storage as backup');
         
