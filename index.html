@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -9,6 +10,264 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .redirect-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-family: 'Cairo', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+    <script>
+        // Authentication Check - RETURNS TRUE/FALSE WITHOUT REDIRECTING
+        function checkAuthentication() {
+            const session = localStorage.getItem('forsa_session');
+            if (!session) {
+                return false; // No session
+            }
+            
+            try {
+                const sessionData = JSON.parse(session);
+                const expiresAt = new Date(sessionData.expires_at);
+                
+                if (expiresAt <= new Date()) {
+                    // Session expired
+                    localStorage.removeItem('forsa_session');
+                    return false;
+                }
+                
+                // Valid session, store user info
+                window.currentUser = sessionData.user;
+                return true;
+            } catch (error) {
+                // Invalid session
+                localStorage.removeItem('forsa_session');
+                return false;
+            }
+        }
+        
+        function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                localStorage.removeItem('forsa_session');
+                window.location.href = '/auth';
+            }
+        }
+        
+        // Auto-redirect to server if accessed directly as file
+        function ensureServerAccess() {
+            const currentUrl = window.location.href;
+            if (currentUrl.startsWith('file://')) {
+                // Show user-friendly message and auto-redirect
+                const redirectMessage = document.createElement('div');
+                redirectMessage.className = 'redirect-overlay';
+                
+                redirectMessage.innerHTML = `
+                    <div style="background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; max-width: 500px;">
+                        <i class="fas fa-server" style="font-size: 3em; margin-bottom: 20px;"></i>
+                        <h2>جاري تحضير الموقع...</h2>
+                        <p style="margin: 20px 0; font-size: 1.1em;">يتم تحويلك إلى النسخة الصحيحة من الموقع</p>
+                        <div class="loading-spinner" style="
+                            border: 4px solid rgba(255,255,255,0.3);
+                            border-top: 4px solid white;
+                            border-radius: 50%;
+                            width: 40px;
+                            height: 40px;
+                            animation: spin 1s linear infinite;
+                            margin: 20px auto;
+                        "></div>
+                        <p style="font-size: 0.9em; opacity: 0.8;">سيتم التحويل تلقائياً في 3 ثواني...</p>
+                    </div>
+                `;
+                
+                document.body.appendChild(redirectMessage);
+                
+                // Auto-redirect after 3 seconds
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:3001/';
+                }, 3000);
+                
+                return false; // Stop normal page loading
+            }
+            return true; // Continue normal page loading
+        }
+        
+        // Auto-redirect to server if accessed directly as file
+        // Check authentication on page load - REQUIRED BEFORE SITE ACCESS
+        document.addEventListener('DOMContentLoaded', function() {
+            // First ensure we're accessing through server
+            if (!ensureServerAccess()) {
+                return; // Stop if redirecting
+            }
+            
+            // BLOCK ACCESS - Authentication required before entering site
+            if (!checkAuthentication()) {
+                // User is not authenticated - redirect to auth page immediately
+                console.log('User not authenticated, redirecting to auth page');
+                
+                // Show loading message while redirecting
+                document.body.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Cairo', sans-serif;
+                        text-align: center;
+                        padding: 20px;
+                    ">
+                        <div style="background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; max-width: 500px;">
+                            <i class="fas fa-user-lock" style="font-size: 3em; margin-bottom: 20px;"></i>
+                            <h2>يجب تسجيل الدخول أولاً</h2>
+                            <p style="margin: 20px 0; font-size: 1.1em;">للوصول إلى موقع Forsa، يجب إنشاء حساب أو تسجيل الدخول</p>
+                            <div class="loading-spinner" style="
+                                border: 4px solid rgba(255,255,255,0.3);
+                                border-top: 4px solid white;
+                                border-radius: 50%;
+                                width: 40px;
+                                height: 40px;
+                                animation: spin 1s linear infinite;
+                                margin: 20px auto;
+                            "></div>
+                            <p style="font-size: 0.9em; opacity: 0.8;">جاري التحويل لصفحة التسجيل...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Redirect to auth page after showing message
+                setTimeout(() => {
+                    window.location.href = '/auth';
+                }, 2000);
+                
+                return; // Stop loading the rest of the page
+            }
+            
+            // User is authenticated - continue loading the site
+            console.log('User authenticated, loading site');
+            
+            // Check for return from auth page
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('return') === 'checkout') {
+                // ... existing code ...
+            }
+            
+            // User is authenticated, add user info to UI
+            if (window.currentUser) {
+                addUserInfoToUI(window.currentUser);
+            }
+            console.log('Site loaded successfully for authenticated user');
+        });
+        
+        function addUserInfoToUI(user) {
+            // Update auth button to show user info and logout
+            const authButton = document.getElementById('authButton');
+            const authLink = document.getElementById('authLink');
+            
+            if (authButton && authLink) {
+                authButton.innerHTML = `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 8px 15px;
+                        border-radius: 20px;
+                        color: white;
+                        font-size: 14px;
+                        backdrop-filter: blur(10px);
+                        cursor: pointer;
+                    " onclick="showUserMenu()">
+                        <i class="fas fa-user-circle" style="color: #fff; font-size: 16px;"></i>
+                        <span><strong>${user.name}</strong></span>
+                        <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                    </div>
+                    <div id="userMenu" style="
+                        display: none;
+                        position: absolute;
+                        top: 100%;
+                        right: 0;
+                        background: white;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        min-width: 200px;
+                        z-index: 1000;
+                        margin-top: 5px;
+                    ">
+                        <div style="padding: 15px; border-bottom: 1px solid #eee;">
+                            <div style="color: #333; font-weight: bold;">${user.name}</div>
+                            <div style="color: #666; font-size: 12px;">${user.email}</div>
+                            ${user.role === 'admin' ? '<div style="color: #007bff; font-size: 11px; font-weight: bold;">مدير النظام</div>' : ''}
+                        </div>
+                        <a href="admin-api.html" style="
+                            display: ${user.role === 'admin' ? 'flex' : 'none'};
+                            align-items: center;
+                            gap: 10px;
+                            padding: 12px 15px;
+                            color: #333;
+                            text-decoration: none;
+                            border-bottom: 1px solid #eee;
+                        " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-shield-alt" style="color: #007bff;"></i>
+                            لوحة الإدارة
+                        </a>
+                        <div onclick="logout()" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            padding: 12px 15px;
+                            color: #dc3545;
+                            cursor: pointer;
+                        " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-sign-out-alt"></i>
+                            تسجيل الخروج
+                        </div>
+                    </div>
+                `;
+                
+                // Make the auth button relative positioned
+                authButton.style.position = 'relative';
+            }
+        }
+        
+        function showUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu) {
+                userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // Close user menu when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            const authButton = document.getElementById('authButton');
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu && authButton && !authButton.contains(e.target)) {
+                userMenu.style.display = 'none';
+            }
+        });
+    </script>
 </head>
 <body>
     <!-- Navigation -->
@@ -37,7 +296,11 @@
                         <span class="cart-count" id="cartCount">0</span>
                     </button>
                 </li>
-
+                <li class="nav-item" id="authButton">
+                    <a href="auth.html" class="nav-cta auth-link" id="authLink">
+                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a href="#collection" class="nav-cta">💼 تسوق الآن</a>
                 </li>

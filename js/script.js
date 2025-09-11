@@ -741,10 +741,42 @@ function getPaymentMethodText(method) {
 
 
 
-// Enhanced checkout function with automatic data saving
+// Enhanced checkout function with authentication check
 function proceedToCheckout() {
     if (cart.length === 0) {
         showNotification('السلة فارغة. أضف بعض المنتجات أولاً', 'error');
+        return;
+    }
+    
+    // Check if user is authenticated
+    const session = localStorage.getItem('forsa_session');
+    if (!session) {
+        // Show user-friendly login prompt
+        const loginPrompt = `
+            🔐 لإتمام طلبك بأمان
+            
+            يجب تسجيل الدخول أولاً لحفظ طلبك وحمايته
+            
+            ✅ حماية بياناتك الشخصية
+            ✅ متابعة حالة الطلب
+            ✅ عرض تاريخ طلباتك
+            
+            هل تريد تسجيل الدخول الآن؟
+        `;
+        
+        if (confirm(loginPrompt)) {
+            // Store cart data temporarily
+            localStorage.setItem('temp_cart_for_checkout', JSON.stringify(cart));
+            localStorage.setItem('temp_customer_info', JSON.stringify(customerInfo));
+            
+            // Redirect to auth with return URL
+            window.location.href = '/auth?return=checkout';
+        } else {
+            // Offer WhatsApp alternative
+            if (confirm('يمكنك أيضاً إرسال طلبك مباشرة عبر الواتساب بدون تسجيل\n\nهل تريد المتابعة عبر الواتساب؟')) {
+                sendOrderToWhatsApp();
+            }
+        }
         return;
     }
     
@@ -758,7 +790,7 @@ function proceedToCheckout() {
     // Show loading state
     showNotification('جاري حفظ الطلب في قاعدة البيانات...', 'info');
     
-    // Save order data automatically to both Google Sheets and Local Storage
+    // Save order data automatically to backend API
     saveCompleteOrderData()
         .then((orderData) => {
             // After successful save, send to WhatsApp
@@ -766,27 +798,31 @@ function proceedToCheckout() {
             
             // Show admin panel link
             setTimeout(() => {
-                showNotification(`📈 يمكنك عرض الطلب في لوحة الإدارة أو باستخدام Ctrl+Alt+O`, 'info');
+                showNotification(`📊 يمكنك عرض الطلب في لوحة الإدارة أو باستخدام Ctrl+Alt+O`, 'info');
             }, 2000);
             
             // Optional: Ask if user wants to go to WhatsApp
             if (confirm('تم حفظ الطلب بنجاح!\n\nهل تريد إرسال نسخة عبر الواتساب أيضاً؟')) {
                 sendOrderToWhatsApp();
             }
+            
+            // Clear cart after successful order
+            clearCart();
+            toggleCart();
         })
         .catch((error) => {
             console.error('Error saving order:', error);
-            
-            // Check if Google Sheets URL is configured
-            if (GOOGLE_SHEETS_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
-                showNotification('⚠️ تم حفظ الطلب محلياً (لم يتم إعداد Google Sheets)', 'warning');
+            if (error.message.includes('يجب تسجيل الدخول')) {
+                showNotification('يجب تسجيل الدخول أولاً لحفظ الطلب', 'error');
+                if (confirm('هل تريد الذهاب إلى صفحة تسجيل الدخول؟')) {
+                    window.location.href = 'auth.html';
+                }
             } else {
-                showNotification('⚠️ تم حفظ الطلب محلياً (مشكلة في الاتصال)', 'warning');
-            }
-            
-            // Ask if user still wants to go to WhatsApp
-            if (confirm('تم حفظ الطلب محلياً.\n\nهل تريد إرساله عبر الواتساب؟')) {
-                sendOrderToWhatsApp();
+                showNotification('خطأ في حفظ الطلب: ' + error.message, 'error');
+                // Offer WhatsApp as alternative
+                if (confirm('حدث خطأ في حفظ الطلب.\n\nهل تريد إرسال الطلب عبر الواتساب بدلاً من ذلك؟')) {
+                    sendOrderToWhatsApp();
+                }
             }
         });
 }
@@ -984,50 +1020,69 @@ function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
 // COMPLETE ORDER DATA SAVING FUNCTION  
 // =============================================
 
-// Save complete order data to both Google Sheets and Local Storage
+// Save complete order data to API backend
 async function saveCompleteOrderData() {
     const orderData = {
         orderId: 'ORD-' + Date.now(),
-        timestamp: new Date().toISOString(),
         customer: {
             name: customerInfo.name,
             phone: customerInfo.phone,
             email: customerInfo.email || '',
             city: customerInfo.city || '',
-            address: customerInfo.address || '',
-            paymentMethod: customerInfo.paymentMethod || '',
-            notes: customerInfo.notes || ''
+            address: customerInfo.address || ''
         },
         products: cart.map(item => ({
             name: item.name,
             category: item.category,
             price: item.price,
-            quantity: item.quantity,
-            total: item.price * item.quantity
+            quantity: item.quantity
         })),
         totals: {
             totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
             totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
         },
-        source: 'website_complete_order'
+        paymentMethod: customerInfo.paymentMethod || 'cash_on_delivery',
+        notes: customerInfo.notes || ''
     };
     
     try {
-        // Save to Google Sheets first
-        await saveCompleteOrderToGoogleSheets(orderData);
-        showNotification('تم حفظ الطلب بنجاح! يمكن الوصول إليه من جميع الأجهزة.', 'success');
-        console.log('✅ Order saved to Google Sheets successfully');
+        // Check if user is authenticated
+        const session = localStorage.getItem('forsa_session');
+        if (!session) {
+            throw new Error('يجب تسجيل الدخول أولاً لحفظ الطلب');
+        }
+
+        const sessionData = JSON.parse(session);
+        const token = sessionData.token;
+
+        // Save to backend API
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'خطأ في حفظ الطلب');
+        }
+
+        const result = await response.json();
+        showNotification('تم حفظ الطلب بنجاح! يمكن الوصول إليه من لوحة الإدارة.', 'success');
+        console.log('✅ Order saved to database successfully');
         
-        // Save to local storage as backup
-        saveCompleteOrderToLocalStorage(orderData);
-        console.log('✅ Order saved to local storage successfully');
+        // Also save to local storage as backup
+        saveCompleteOrderToLocalStorage(result.order);
         
-        return Promise.resolve(orderData);
+        return Promise.resolve(result.order);
         
     } catch (error) {
-        console.error('❌ Error saving to Google Sheets:', error);
+        console.error('❌ Error saving order:', error);
         
-        // Always save locally even if Google Sheets fails
+        // Always save locally as backup
         saveCompleteOrderToLocalStorage(orderData);
         console.log('✅ Order saved to local storage as backup');
         

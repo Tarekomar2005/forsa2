@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - Forsa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .auth-status {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .auth-status.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .btn-success { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .btn-warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 3px solid #eee;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            padding: 20px 30px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 18px 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .user-role {
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .role-admin { background: #e7f3ff; color: #0056b3; }
+        .role-user { background: #f8f9fa; color: #495057; }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .stats { grid-template-columns: 1fr; }
+            .actions { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> لوحة الإدارة</h1>
+            <p>مراقبة وإدارة جميع الطلبات والمستخدمين</p>
+        </div>
+
+        <div id="authStatus" class="auth-status">
+            <i class="fas fa-check-circle"></i> مرحباً، أنت مسجل الدخول كمدير
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">إجمالي الطلبات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">المستخدمين</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">0</div>
+                <div class="stat-label">إجمالي الإيرادات (جنيه)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingOrders">0</div>
+                <div class="stat-label">طلبات معلقة</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> تحديث البيانات
+            </button>
+            <button class="btn btn-success" onclick="exportData()">
+                <i class="fas fa-download"></i> تصدير التقرير
+            </button>
+            <button class="btn btn-warning" onclick="goToMainSite()">
+                <i class="fas fa-home"></i> الموقع الرئيسي
+            </button>
+            <button class="btn btn-danger" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('orders')">
+                <i class="fas fa-shopping-cart"></i> جميع الطلبات
+            </button>
+            <button class="tab" onclick="showTab('users')">
+                <i class="fas fa-users"></i> المستخدمين
+            </button>
+        </div>
+
+        <div id="orders" class="tab-content active">
+            <div class="loading" id="ordersLoading">
+                <div class="spinner"></div>
+                <p>جاري تحميل الطلبات...</p>
+            </div>
+            <div class="table-container" id="ordersTable" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>رقم الهاتف</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>المدينة</th>
+                            <th>المنتجات</th>
+                            <th>المبلغ الإجمالي</th>
+                            <th>طريقة الدفع</th>
+                            <th>الحالة</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="users" class="tab-content">
+            <div class="loading" id="usersLoading">
+                <div class="spinner"></div>
+                <p>جاري تحميل المستخدمين...</p>
+            </div>
+            <div class="table-container" id="usersTable" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>رقم الهاتف</th>
+                            <th>الدور</th>
+                            <th>الحالة</th>
+                            <th>آخر دخول</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>عدد الطلبات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.currentUser = null;
+                this.token = null;
+                this.orders = [];
+                this.users = [];
+                this.init();
+            }
+
+            init() {
+                this.checkAuthentication();
+                this.loadData();
+            }
+
+            checkAuthentication() {
+                // Admin panel is now public - no authentication required for business owners
+                console.log('Admin panel accessed directly - no authentication required');
+                
+                // Set default admin user for display purposes
+                this.currentUser = {
+                    name: 'مدير الموقع',
+                    email: 'admin@forsa.com',
+                    role: 'admin'
+                };
+                this.token = 'direct_admin_access'; // Placeholder token
+
+                // Update auth status to show it's publicly accessible
+                document.getElementById('authStatus').innerHTML = 
+                    `<i class="fas fa-shield-alt"></i> لوحة إدارة Forsa - عرض جميع الطلبات (وصول مباشر)`;
+            }
+
+            redirectToLogin() {
+                alert('يجب تسجيل الدخول أولاً');
+                window.location.href = 'auth.html';
+            }
+
+            async makeAPICall(endpoint, options = {}) {
+                try {
+                    // Direct API call to admin endpoints (no authentication required)
+                    const apiUrl = `http://localhost:3001/api${endpoint}`;
+                    console.log('Making API call to:', apiUrl);
+                    
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    });
+                    
+                    console.log('API Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => null);
+                        throw new Error(errorData?.message || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('API Response data:', data);
+                    return data;
+                } catch (error) {
+                    console.error('API call error:', error);
+                    this.showError('خطأ في الاتصال: ' + error.message);
+                    return { orders: [], users: [], totalOrders: 0, totalUsers: 0, totalRevenue: 0 };
+                }
+            }
+
+            async loadData() {
+                await Promise.all([
+                    this.loadOrders(),
+                    this.loadUsers(),
+                    this.loadStats()
+                ]);
+            }
+
+            async loadOrders() {
+                document.getElementById('ordersLoading').style.display = 'block';
+                document.getElementById('ordersTable').style.display = 'none';
+
+                // Use admin endpoint that doesn't require authentication
+                const data = await this.makeAPICall('/admin/orders');
+                
+                if (data && data.orders) {
+                    this.orders = data.orders;
+                    this.displayOrders();
+                } else {
+                    this.orders = [];
+                    this.displayOrders();
+                }
+
+                document.getElementById('ordersLoading').style.display = 'none';
+                document.getElementById('ordersTable').style.display = 'block';
+            }
+
+            async loadUsers() {
+                document.getElementById('usersLoading').style.display = 'block';
+                document.getElementById('usersTable').style.display = 'none';
+
+                // Use admin endpoint that doesn't require authentication
+                const data = await this.makeAPICall('/admin/users');
+                
+                if (data && Array.isArray(data)) {
+                    this.users = data;
+                    this.displayUsers();
+                } else {
+                    this.users = [];
+                    this.displayUsers();
+                }
+
+                document.getElementById('usersLoading').style.display = 'none';
+                document.getElementById('usersTable').style.display = 'block';
+            }
+
+            async loadStats() {
+                // Use admin endpoint that doesn't require authentication
+                const data = await this.makeAPICall('/admin/stats');
+                
+                if (data) {
+                    document.getElementById('totalOrders').textContent = data.totalOrders || 0;
+                    document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                    document.getElementById('totalRevenue').textContent = (data.totalRevenue || 0).toLocaleString();
+                    
+                    // Count pending orders
+                    const pendingCount = this.orders.filter(order => order.status === 'pending').length;
+                    document.getElementById('pendingOrders').textContent = pendingCount;
+                }
+            }
+
+            displayOrders() {
+                const tbody = document.getElementById('ordersTableBody');
+                
+                if (this.orders.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="empty-state">
+                                <i class="fas fa-shopping-cart"></i>
+                                <h3>لا توجد طلبات</h3>
+                                <p>ستظهر هنا جميع الطلبات من جميع العملاء</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = this.orders.map(order => {
+                    const customer = order.customer || {};
+                    const products = order.products || [];
+                    const productsSummary = products.map(p => `${p.name} (${p.quantity})`).join(', ');
+                    const totalAmount = order.totals?.totalAmount || 0;
+                    const date = new Date(order.createdAt).toLocaleDateString('ar-EG');
+                    
+                    return `
+                        <tr>
+                            <td><strong>${order.orderId}</strong></td>
+                            <td>${customer.name || 'غير محدد'}</td>
+                            <td>${customer.phone || 'غير محدد'}</td>
+                            <td>${customer.email || 'غير محدد'}</td>
+                            <td>${customer.city || 'غير محدد'}</td>
+                            <td title="${productsSummary}">
+                                ${products.length} منتج
+                                ${productsSummary.length > 30 ? 
+                                    '<br><small>' + productsSummary.substring(0, 30) + '...</small>' : 
+                                    '<br><small>' + productsSummary + '</small>'
+                                }
+                            </td>
+                            <td><strong>${totalAmount.toLocaleString()} جنيه</strong></td>
+                            <td>${this.getPaymentMethodText(order.paymentMethod)}</td>
+                            <td><span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></td>
+                            <td>${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            displayUsers() {
+                const tbody = document.getElementById('usersTableBody');
+                
+                if (this.users.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h3>لا توجد مستخدمين</h3>
+                                <p>ستظهر هنا جميع المستخدمين المسجلين</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = this.users.map(user => {
+                    const userOrders = this.orders.filter(order => order.userId === user.id);
+                    const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('ar-EG') : 'لم يسجل دخول';
+                    const createdAt = new Date(user.createdAt).toLocaleDateString('ar-EG');
+                    
+                    return `
+                        <tr>
+                            <td><strong>${user.name}</strong></td>
+                            <td>${user.email}</td>
+                            <td>${user.phone}</td>
+                            <td><span class="user-role role-${user.role}">${user.role === 'admin' ? 'مدير' : 'عميل'}</span></td>
+                            <td><span class="status-badge status-${user.status === 'active' ? 'completed' : 'pending'}">${user.status === 'active' ? 'نشط' : 'معطل'}</span></td>
+                            <td>${lastLogin}</td>
+                            <td>${createdAt}</td>
+                            <td><strong>${userOrders.length}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            getStatusText(status) {
+                const statusMap = {
+                    'pending': 'معلق',
+                    'processing': 'قيد المعالجة',
+                    'completed': 'مكتمل',
+                    'cancelled': 'ملغي'
+                };
+                return statusMap[status] || status;
+            }
+
+            getPaymentMethodText(method) {
+                const methodMap = {
+                    'cash_on_delivery': 'الدفع عند الاستلام',
+                    'bank_transfer': 'تحويل بنكي',
+                    'credit_card': 'بطاقة ائتمان'
+                };
+                return methodMap[method] || method;
+            }
+
+            showError(message) {
+                const authStatus = document.getElementById('authStatus');
+                authStatus.className = 'auth-status error';
+                authStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            }
+
+            async refreshData() {
+                await this.loadData();
+                this.showSuccess('تم تحديث البيانات بنجاح');
+            }
+
+            showSuccess(message) {
+                const authStatus = document.getElementById('authStatus');
+                const originalContent = authStatus.innerHTML;
+                const originalClass = authStatus.className;
+                
+                authStatus.className = 'auth-status';
+                authStatus.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                
+                setTimeout(() => {
+                    authStatus.className = originalClass;
+                    authStatus.innerHTML = originalContent;
+                }, 3000);
+            }
+
+            exportData() {
+                const data = {
+                    exportDate: new Date().toISOString(),
+                    totalOrders: this.orders.length,
+                    totalUsers: this.users.length,
+                    orders: this.orders,
+                    users: this.users.map(user => {
+                        const { password, ...userWithoutPassword } = user;
+                        return userWithoutPassword;
+                    })
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `forsa_admin_report_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                this.showSuccess('تم تصدير التقرير بنجاح');
+            }
+
+            goToMainSite() {
+                window.location.href = 'index.html';
+            }
+
+            logout() {
+                if (confirm('هل تريد العودة إلى الموقع الرئيسي؟')) {
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // UI Functions
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function refreshData() {
+            adminPanel.refreshData();
+        }
+
+        function exportData() {
+            adminPanel.exportData();
+        }
+
+        function goToMainSite() {
+            adminPanel.goToMainSite();
+        }
+
+        function logout() {
+            adminPanel.logout();
+        }
+
+        // Initialize the admin panel
+        const adminPanel = new AdminPanel();
+    </script>
+</body>
+</html>

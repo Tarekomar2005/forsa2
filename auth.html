@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - Forsa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .auth-header h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:invalid {
+            border-color: #e74c3c;
+        }
+
+        .form-group input:valid {
+            border-color: #27ae60;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .auth-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .auth-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .auth-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .password-requirements {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .password-requirements h4 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .requirement i {
+            margin-left: 8px;
+            width: 16px;
+        }
+
+        .requirement.valid {
+            color: #27ae60;
+        }
+
+        .requirement.invalid {
+            color: #e74c3c;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .auth-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-shopping-bag"></i> Forsa</h1>
+            <p id="authSubtitle">مرحباً بك في منصة فرصة للحقائب</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('login')">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </button>
+            <button class="auth-tab" onclick="switchTab('register')">
+                <i class="fas fa-user-plus"></i> إنشاء حساب
+            </button>
+        </div>
+
+        <div id="authMessage" class="auth-message" style="display: none;"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>جاري المعالجة...</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail">البريد الإلكتروني</label>
+                <input type="email" id="loginEmail" name="email" required 
+                       placeholder="أدخل بريدك الإلكتروني">
+            </div>
+            
+            <div class="form-group">
+                <label for="loginPassword">كلمة المرور</label>
+                <input type="password" id="loginPassword" name="password" required 
+                       placeholder="أدخل كلمة المرور">
+            </div>
+
+            <button type="submit" class="auth-btn">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </button>
+
+            <div class="forgot-password">
+                <a href="#" onclick="showForgotPassword()">نسيت كلمة المرور؟</a>
+            </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="registerName">الاسم الكامل</label>
+                <input type="text" id="registerName" name="name" required 
+                       placeholder="أدخل اسمك الكامل" minlength="2">
+            </div>
+
+            <div class="form-group">
+                <label for="registerEmail">البريد الإلكتروني</label>
+                <input type="email" id="registerEmail" name="email" required 
+                       placeholder="أدخل بريدك الإلكتروني">
+            </div>
+
+            <div class="form-group">
+                <label for="registerPhone">رقم الهاتف</label>
+                <input type="tel" id="registerPhone" name="phone" required 
+                       placeholder="01xxxxxxxxx" pattern="^01[0-9]{9}$">
+            </div>
+
+            <div class="form-group">
+                <label for="registerPassword">كلمة المرور</label>
+                <input type="password" id="registerPassword" name="password" required 
+                       placeholder="أدخل كلمة مرور قوية" minlength="8">
+            </div>
+
+            <div class="password-requirements">
+                <h4>متطلبات كلمة المرور:</h4>
+                <div class="requirement" id="lengthReq">
+                    <i class="fas fa-times"></i>
+                    على الأقل 8 أحرف
+                </div>
+                <div class="requirement" id="upperReq">
+                    <i class="fas fa-times"></i>
+                    حرف كبير واحد على الأقل
+                </div>
+                <div class="requirement" id="lowerReq">
+                    <i class="fas fa-times"></i>
+                    حرف صغير واحد على الأقل
+                </div>
+                <div class="requirement" id="numberReq">
+                    <i class="fas fa-times"></i>
+                    رقم واحد على الأقل
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">تأكيد كلمة المرور</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required 
+                       placeholder="أعد إدخال كلمة المرور">
+            </div>
+
+            <button type="submit" class="auth-btn" id="registerBtn" disabled>
+                <i class="fas fa-user-plus"></i> إنشاء حساب
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Authentication System
+        class AuthSystem {
+            constructor() {
+                this.currentUser = null;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.checkExistingSession();
+                this.initializeDatabase();
+                this.updateUIBasedOnParams();
+            }
+            
+            updateUIBasedOnParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnParam = urlParams.get('return');
+                
+                if (returnParam === 'checkout') {
+                    document.getElementById('authSubtitle').innerHTML = `
+                        🛡️ لإتمام طلبك بأمان وحماية بياناتك<br>
+                        <small style="opacity: 0.8;">سجل الدخول أو أنشئ حساب جديد</small>
+                    `;
+                    
+                    // Add benefits info
+                    const benefitsDiv = document.createElement('div');
+                    benefitsDiv.style.cssText = `
+                        background: rgba(39, 174, 96, 0.1);
+                        border: 1px solid rgba(39, 174, 96, 0.3);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin-bottom: 20px;
+                        font-size: 14px;
+                        color: #27ae60;
+                    `;
+                    
+                    benefitsDiv.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 10px;">
+                            <i class="fas fa-shield-alt"></i> مزايا تسجيل الدخول:
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                            <div>✅ حماية بياناتك</div>
+                            <div>✅ متابعة الطلبات</div>
+                            <div>✅ حفظ في قاعدة البيانات</div>
+                            <div>✅ خدمة عملاء أفضل</div>
+                        </div>
+                    `;
+                    
+                    const authMessage = document.getElementById('authMessage');
+                    authMessage.parentNode.insertBefore(benefitsDiv, authMessage);
+                }
+            }
+
+            async initializeDatabase() {
+                // Initialize local database for user management
+                if (!localStorage.getItem('forsa_users_db')) {
+                    const initialDB = {
+                        users: [],
+                        sessions: [],
+                        created_at: new Date().toISOString()
+                    };
+                    localStorage.setItem('forsa_users_db', JSON.stringify(initialDB));
+                }
+            }
+
+            setupEventListeners() {
+                // Login form
+                document.getElementById('loginForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+
+                // Register form
+                document.getElementById('registerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleRegister();
+                });
+
+                // Password validation
+                document.getElementById('registerPassword').addEventListener('input', (e) => {
+                    this.validatePassword(e.target.value);
+                });
+
+                // Confirm password validation
+                document.getElementById('confirmPassword').addEventListener('input', (e) => {
+                    this.validatePasswordMatch();
+                });
+            }
+
+            async handleLogin() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                this.showLoading(true);
+
+                try {
+                    // Check if we're accessing through the server
+                    const currentUrl = window.location.href;
+                    if (currentUrl.startsWith('file://')) {
+                        this.showMessage('يجب الوصول للصفحة عبر الخادم: http://localhost:3001/auth', 'error');
+                        return;
+                    }
+
+                    console.log('Attempting login with email:', email);
+                    
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    console.log('Login response status:', response.status);
+                    const data = await response.json();
+                    console.log('Login response data:', data);
+
+                    if (response.ok) {
+                        this.createSession(data.user, data.token);
+                        this.showMessage('تم تسجيل الدخول بنجاح!', 'success');
+                        
+                        // Check if user came from checkout
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const returnUrl = urlParams.get('return');
+                        
+                        setTimeout(() => {
+                            if (returnUrl === 'checkout') {
+                                window.location.href = '/?return=checkout';
+                            } else {
+                                window.location.href = '/';
+                            }
+                        }, 1500);
+                    } else {
+                        this.showMessage(data.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'error');
+                    }
+                } catch (error) {
+                    console.error('Login error details:', error);
+                    let errorMessage = 'حدث خطأ أثناء تسجيل الدخول: ';
+                    
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        errorMessage += 'تعذر الاتصال بالخادم. تأكد من أن الخادم يعمل على http://localhost:3001';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    
+                    this.showMessage(errorMessage, 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async handleRegister() {
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const phone = document.getElementById('registerPhone').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Validation
+                if (password !== confirmPassword) {
+                    this.showMessage('كلمتا المرور غير متطابقتان', 'error');
+                    return;
+                }
+
+                if (!this.isPasswordValid(password)) {
+                    this.showMessage('كلمة المرور لا تلبي المتطلبات المطلوبة', 'error');
+                    return;
+                }
+
+                this.showLoading(true);
+
+                try {
+                    // Check if we're accessing through the server
+                    const currentUrl = window.location.href;
+                    if (currentUrl.startsWith('file://')) {
+                        this.showMessage('يجب الوصول للصفحة عبر الخادم: http://localhost:3001/auth', 'error');
+                        return;
+                    }
+
+                    console.log('Attempting registration with:', { name, email, phone });
+                    
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, email, phone, password })
+                    });
+
+                    console.log('Registration response status:', response.status);
+                    const data = await response.json();
+                    console.log('Registration response data:', data);
+
+                    if (response.ok) {
+                        this.showMessage('تم إنشاء الحساب بنجاح! يتم تسجيل الدخول...', 'success');
+                        
+                        // Auto login after registration
+                        setTimeout(() => {
+                            this.createSession(data.user, data.token);
+                            
+                            // Check if user came from checkout
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const returnUrl = urlParams.get('return');
+                            
+                            if (returnUrl === 'checkout') {
+                                window.location.href = '/?return=checkout';
+                            } else {
+                                window.location.href = '/';
+                            }
+                        }, 2000);
+                    } else {
+                        this.showMessage(data.message || 'حدث خطأ أثناء إنشاء الحساب', 'error');
+                    }
+                } catch (error) {
+                    console.error('Registration error details:', error);
+                    let errorMessage = 'حدث خطأ أثناء إنشاء الحساب: ';
+                    
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        errorMessage += 'تعذر الاتصال بالخادم. تأكد من أن الخادم يعمل على http://localhost:3001';
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    
+                    this.showMessage(errorMessage, 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async findUserByEmail(email) {
+                const db = this.getDatabase();
+                return db.users.find(user => user.email === email);
+            }
+
+            async createUser(userData) {
+                const db = this.getDatabase();
+                
+                const newUser = {
+                    id: this.generateUserId(),
+                    ...userData,
+                    created_at: new Date().toISOString(),
+                    last_login: null,
+                    status: 'active'
+                };
+
+                db.users.push(newUser);
+                this.saveDatabase(db);
+                
+                return newUser;
+            }
+
+            async authenticateUser(email, password) {
+                const user = await this.findUserByEmail(email);
+                if (!user) return null;
+
+                const isPasswordValid = await this.verifyPassword(password, user.password);
+                if (!isPasswordValid) return null;
+
+                // Update last login
+                user.last_login = new Date().toISOString();
+                const db = this.getDatabase();
+                this.saveDatabase(db);
+
+                return user;
+            }
+
+            createSession(user, token) {
+                const sessionData = {
+                    user_id: user.id,
+                    user: user,
+                    token: token,
+                    created_at: new Date().toISOString(),
+                    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+                };
+
+                localStorage.setItem('forsa_session', JSON.stringify(sessionData));
+                this.currentUser = user;
+            }
+
+            checkExistingSession() {
+                const session = localStorage.getItem('forsa_session');
+                if (session) {
+                    const sessionData = JSON.parse(session);
+                    const expiresAt = new Date(sessionData.expires_at);
+                    
+                    if (expiresAt > new Date()) {
+                        // Valid session exists, redirect to main page
+                        window.location.href = 'index.html';
+                    } else {
+                        // Session expired, remove it
+                        localStorage.removeItem('forsa_session');
+                    }
+                }
+            }
+
+            validatePassword(password) {
+                const requirements = {
+                    length: password.length >= 8,
+                    upper: /[A-Z]/.test(password),
+                    lower: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password)
+                };
+
+                // Update UI
+                this.updateRequirement('lengthReq', requirements.length);
+                this.updateRequirement('upperReq', requirements.upper);
+                this.updateRequirement('lowerReq', requirements.lower);
+                this.updateRequirement('numberReq', requirements.number);
+
+                const isValid = Object.values(requirements).every(req => req);
+                this.updateRegisterButton();
+                
+                return isValid;
+            }
+
+            validatePasswordMatch() {
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const confirmInput = document.getElementById('confirmPassword');
+
+                if (confirmPassword && password !== confirmPassword) {
+                    confirmInput.style.borderColor = '#e74c3c';
+                } else {
+                    confirmInput.style.borderColor = confirmPassword ? '#27ae60' : '#e9ecef';
+                }
+
+                this.updateRegisterButton();
+            }
+
+            updateRequirement(elementId, isValid) {
+                const element = document.getElementById(elementId);
+                const icon = element.querySelector('i');
+                
+                if (isValid) {
+                    element.classList.add('valid');
+                    element.classList.remove('invalid');
+                    icon.className = 'fas fa-check';
+                } else {
+                    element.classList.add('invalid');
+                    element.classList.remove('valid');
+                    icon.className = 'fas fa-times';
+                }
+            }
+
+            updateRegisterButton() {
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const phone = document.getElementById('registerPhone').value;
+                const registerBtn = document.getElementById('registerBtn');
+
+                const isFormValid = name.length >= 2 && 
+                                  email.includes('@') && 
+                                  /^01[0-9]{9}$/.test(phone) &&
+                                  this.isPasswordValid(password) && 
+                                  password === confirmPassword;
+
+                registerBtn.disabled = !isFormValid;
+            }
+
+            isPasswordValid(password) {
+                return password.length >= 8 && 
+                       /[A-Z]/.test(password) && 
+                       /[a-z]/.test(password) && 
+                       /[0-9]/.test(password);
+            }
+
+            async hashPassword(password) {
+                // Simple hash for demo - in production use proper hashing like bcrypt
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'forsa_salt_2024');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            async verifyPassword(password, hashedPassword) {
+                const hashedInput = await this.hashPassword(password);
+                return hashedInput === hashedPassword;
+            }
+
+            generateUserId() {
+                return 'USER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            getDatabase() {
+                return JSON.parse(localStorage.getItem('forsa_users_db'));
+            }
+
+            saveDatabase(db) {
+                localStorage.setItem('forsa_users_db', JSON.stringify(db));
+            }
+
+            showMessage(message, type) {
+                const messageDiv = document.getElementById('authMessage');
+                messageDiv.textContent = message;
+                messageDiv.className = `auth-message ${type}`;
+                messageDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            showLoading(show) {
+                const loading = document.getElementById('loading');
+                const forms = document.querySelectorAll('.auth-form');
+                
+                if (show) {
+                    loading.style.display = 'block';
+                    forms.forEach(form => form.style.display = 'none');
+                } else {
+                    loading.style.display = 'none';
+                    const activeForm = document.querySelector('.auth-form.active');
+                    if (activeForm) activeForm.style.display = 'block';
+                }
+            }
+        }
+
+        // UI Functions
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update forms
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.getElementById(tab + 'Form').classList.add('active');
+
+            // Clear message
+            document.getElementById('authMessage').style.display = 'none';
+        }
+
+        function showForgotPassword() {
+            const email = prompt('أدخل بريدك الإلكتروني لإعادة تعيين كلمة المرور:');
+            if (email) {
+                alert('تم إرسال رابط إعادة تعيين كلمة المرور إلى ' + email);
+            }
+        }
+
+        // Initialize the authentication system
+        const authSystem = new AuthSystem();
+    </script>
+</body>
+</html>

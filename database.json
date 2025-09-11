@@ -1,0 +1,246 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Test User",
+      "email": "test@example.com",
+      "phone": "01234567890",
+      "password": "$2a$12$0f4jXVNvxWzQfqy9XkhjY.dykFGERnvtToiTGi7LpXhhBwJjo5f/2",
+      "role": "user",
+      "status": "active",
+      "lastLogin": null,
+      "createdAt": "2025-09-11T05:57:05.832Z",
+      "updatedAt": "2025-09-11T05:57:05.833Z"
+    },
+    {
+      "id": 1,
+      "name": "habeb",
+      "email": "habeb.tesr@gmail.com",
+      "phone": "01272245607",
+      "password": "$2a$12$/cCmS92qSsOOp.KlS.kC1OaZ73Nb1PJb0iBJsnJ4XwPY11tlLzTjC",
+      "role": "user",
+      "status": "active",
+      "lastLogin": null,
+      "createdAt": "2025-09-11T06:12:13.880Z",
+      "updatedAt": "2025-09-11T06:12:13.880Z"
+    },
+    {
+      "id": 1,
+      "name": "mohamed",
+      "email": "moo@gmail.com",
+      "phone": "01272245600",
+      "password": "$2a$12$8DZgT7QJPVs.LmMv6XygZOZB972yO.TPYTgn3i.w8mhaTICVhgsZK",
+      "role": "user",
+      "status": "active",
+      "lastLogin": null,
+      "createdAt": "2025-09-11T06:51:31.763Z",
+      "updatedAt": "2025-09-11T06:51:31.763Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "orderId": "ORD-1757571205309",
+      "userId": 1,
+      "customer": {
+        "name": "habeb",
+        "phone": "01272245607",
+        "email": "habeb.tesr@gmail.com",
+        "city": "cairo",
+        "address": "vm, "
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 1
+        },
+        {
+          "name": "حقيبة يد كلاسيكية فاخرة",
+          "category": "حقائب يد",
+          "price": 850,
+          "quantity": 1
+        }
+      ],
+      "totals": {
+        "totalItems": 2,
+        "totalAmount": 1500
+      },
+      "paymentMethod": "cash_on_delivery",
+      "status": "pending",
+      "notes": "",
+      "createdAt": "2025-09-11T06:13:25.343Z",
+      "updatedAt": "2025-09-11T06:13:25.343Z"
+    },
+    {
+      "id": 1,
+      "orderId": "ORD-1757571280755",
+      "userId": 1,
+      "customer": {
+        "name": "habeb",
+        "phone": "01272245607",
+        "email": "habeb.tesr@gmail.com",
+        "city": "cairo",
+        "address": "vm, "
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 1
+        },
+        {
+          "name": "حقيبة يد كلاسيكية فاخرة",
+          "category": "حقائب يد",
+          "price": 850,
+          "quantity": 1
+        }
+      ],
+      "totals": {
+        "totalItems": 2,
+        "totalAmount": 1500
+      },
+      "paymentMethod": "cash_on_delivery",
+      "status": "pending",
+      "notes": "",
+      "createdAt": "2025-09-11T06:14:40.774Z",
+      "updatedAt": "2025-09-11T06:14:40.774Z"
+    },
+    {
+      "id": 1,
+      "orderId": "ORD-1757571792180",
+      "userId": 1,
+      "customer": {
+        "name": "habeb",
+        "phone": "01272245607",
+        "email": "habeb.tesr@gmail.com",
+        "city": "cairo",
+        "address": "vm, "
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 2
+        },
+        {
+          "name": "حقيبة يد كلاسيكية فاخرة",
+          "category": "حقائب يد",
+          "price": 850,
+          "quantity": 1
+        }
+      ],
+      "totals": {
+        "totalItems": 3,
+        "totalAmount": 2150
+      },
+      "paymentMethod": "cash_on_delivery",
+      "status": "pending",
+      "notes": "",
+      "createdAt": "2025-09-11T06:23:12.200Z",
+      "updatedAt": "2025-09-11T06:23:12.200Z"
+    },
+    {
+      "id": 1,
+      "orderId": "ORD-1757572100687",
+      "userId": 1,
+      "customer": {
+        "name": "habeb",
+        "phone": "01272245607",
+        "email": "habeb.tesr@gmail.com",
+        "city": "cairo",
+        "address": "vm, "
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 1
+        }
+      ],
+      "totals": {
+        "totalItems": 1,
+        "totalAmount": 650
+      },
+      "paymentMethod": "cash_on_delivery",
+      "status": "pending",
+      "notes": "",
+      "createdAt": "2025-09-11T06:28:20.707Z",
+      "updatedAt": "2025-09-11T06:28:20.707Z"
+    },
+    {
+      "id": 1,
+      "orderId": "ORD-1757572954464",
+      "userId": 1,
+      "customer": {
+        "name": "habeb",
+        "phone": "01272245607",
+        "email": "habeb.tesr@gmail.com",
+        "city": "cairo",
+        "address": "vm, "
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 4
+        }
+      ],
+      "totals": {
+        "totalItems": 4,
+        "totalAmount": 2600
+      },
+      "paymentMethod": "cash_on_delivery",
+      "status": "pending",
+      "notes": "",
+      "createdAt": "2025-09-11T06:42:34.489Z",
+      "updatedAt": "2025-09-11T06:42:34.489Z"
+    },
+    {
+      "id": 1,
+      "orderId": "ORD-1757573558464",
+      "userId": 1,
+      "customer": {
+        "name": "mohmed",
+        "phone": "012722456",
+        "email": "mohmed@gmil.com",
+        "city": "cairo",
+        "address": "vv"
+      },
+      "products": [
+        {
+          "name": "حقيبة كروس عملية أنيقة",
+          "category": "حقائب كروس",
+          "price": 650,
+          "quantity": 1
+        },
+        {
+          "name": "حقيبة يد كلاسيكية فاخرة",
+          "category": "حقائب يد",
+          "price": 850,
+          "quantity": 1
+        }
+      ],
+      "totals": {
+        "totalItems": 2,
+        "totalAmount": 1500
+      },
+      "paymentMethod": "vodafone_cash",
+      "status": "pending",
+      "notes": "ff",
+      "createdAt": "2025-09-11T06:52:38.489Z",
+      "updatedAt": "2025-09-11T06:52:38.489Z"
+    }
+  ],
+  "contacts": [],
+  "counters": {
+    "users": 0,
+    "orders": 0,
+    "contacts": 0
+  }
+}
