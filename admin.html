@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة الطلبات - فرصة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .admin-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .orders-section {
+            margin-top: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .orders-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🛍️ لوحة إدارة الطلبات</h1>
+            <p>إدارة طلبات متجر فرصة للشنط الحريمي</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number" id="totalOrders">0</span>
+                <div>إجمالي الطلبات</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalRevenue">0</span>
+                <div>إجمالي المبيعات (جنيه)</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalCustomers">0</span>
+                <div>عدد العملاء</div>
+            </div>
+        </div>
+
+        <div class="orders-section">
+            <div class="section-header">
+                <h3>📋 قائمة الطلبات</h3>
+                <div>
+                    <button class="btn btn-success" onclick="exportOrders()">📥 تصدير البيانات</button>
+                    <button class="btn btn-danger" onclick="clearAllOrders()">🗑️ مسح جميع الطلبات</button>
+                    <button class="btn btn-primary" onclick="refreshData()">🔄 تحديث</button>
+                </div>
+            </div>
+
+            <div id="ordersContainer">
+                <!-- Orders will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.orders = [];
+                this.loadOrders();
+                this.updateStats();
+                this.renderOrders();
+            }
+
+            loadOrders() {
+                try {
+                    const savedOrders = localStorage.getItem('forsa_orders');
+                    this.orders = savedOrders ? JSON.parse(savedOrders) : [];
+                    console.log('Loaded orders:', this.orders.length);
+                } catch (error) {
+                    console.error('Error loading orders:', error);
+                    this.orders = [];
+                }
+            }
+
+            updateStats() {
+                const totalOrders = this.orders.length;
+                const totalRevenue = this.orders.reduce((sum, order) => {
+                    return sum + (order.totalAmount || 0);
+                }, 0);
+                const uniqueEmails = new Set(this.orders.map(order => order.customer?.email)).size;
+
+                document.getElementById('totalOrders').textContent = totalOrders;
+                document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2);
+                document.getElementById('totalCustomers').textContent = uniqueEmails;
+            }
+
+            renderOrders() {
+                const container = document.getElementById('ordersContainer');
+                
+                if (this.orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h3>لا توجد طلبات حتى الآن</h3>
+                            <p>ستظهر الطلبات هنا بمجرد قيام العملاء بالشراء</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tableHTML = `
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>اسم العميل</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>رقم الهاتف</th>
+                                <th>المبلغ الإجمالي</th>
+                                <th>تاريخ الطلب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.orders.map(order => `
+                                <tr>
+                                    <td>${order.orderId || order.id}</td>
+                                    <td>${order.customer?.name || 'غير محدد'}</td>
+                                    <td>${order.customer?.email || 'غير محدد'}</td>
+                                    <td>${order.customer?.phone || 'غير محدد'}</td>
+                                    <td>${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'} جنيه</td>
+                                    <td>${order.orderDate ? new Date(order.orderDate).toLocaleDateString('ar-EG') : 'غير محدد'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                container.innerHTML = tableHTML;
+            }
+
+            exportOrders() {
+                if (this.orders.length === 0) {
+                    alert('لا توجد طلبات للتصدير');
+                    return;
+                }
+
+                const csvContent = this.convertToCSV(this.orders);
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `forsa-orders-${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            convertToCSV(orders) {
+                const headers = ['رقم الطلب', 'اسم العميل', 'البريد الإلكتروني', 'رقم الهاتف', 'العنوان', 'المبلغ الإجمالي', 'تاريخ الطلب', 'المنتجات'];
+                const csvRows = [headers.join(',')];
+
+                orders.forEach(order => {
+                    const products = order.items ? order.items.map(item => `${item.name} (${item.quantity})`).join('; ') : '';
+                    const row = [
+                        order.orderId || order.id,
+                        order.customer?.name || '',
+                        order.customer?.email || '',
+                        order.customer?.phone || '',
+                        order.customer?.address || '',
+                        order.totalAmount || 0,
+                        order.orderDate || '',
+                        products
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                return csvRows.join('\n');
+            }
+
+            clearAllOrders() {
+                if (confirm('هل أنت متأكد من حذف جميع الطلبات؟ هذه العملية لا يمكن التراجع عنها.')) {
+                    localStorage.removeItem('forsa_orders');
+                    this.orders = [];
+                    this.updateStats();
+                    this.renderOrders();
+                    alert('تم حذف جميع الطلبات بنجاح');
+                }
+            }
+
+            refreshData() {
+                this.loadOrders();
+                this.updateStats();
+                this.renderOrders();
+                console.log('Data refreshed');
+            }
+        }
+
+        // Global functions
+        let adminPanel;
+
+        function exportOrders() {
+            adminPanel.exportOrders();
+        }
+
+        function clearAllOrders() {
+            adminPanel.clearAllOrders();
+        }
+
+        function refreshData() {
+            adminPanel.refreshData();
+        }
+
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', function() {
+            adminPanel = new AdminPanel();
+        });
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

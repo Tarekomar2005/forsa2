@@ -66,7 +66,7 @@
         function logout() {
             if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
                 localStorage.removeItem('forsa_simple_session');
-                window.location.href = '/auth-simple';
+                window.location.href = '/auth';
             }
         }
         
@@ -175,7 +175,7 @@
                 // Redirect to auth page after showing message
                 setTimeout(() => {
                     const serverUrl = getServerUrl();
-                    window.location.href = serverUrl + '/auth-simple';
+                    window.location.href = '/auth';
                 }, 2000);
                 
                 return; // Stop loading the rest of the page
@@ -313,7 +313,7 @@
                     </button>
                 </li>
                 <li class="nav-item" id="authButton">
-                    <a href="auth-simple.html" class="nav-cta auth-link" id="authLink">
+                    <a href="auth.html" class="nav-cta auth-link" id="authLink">
                         <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                     </a>
                 </li>

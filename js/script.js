@@ -1045,6 +1045,7 @@ function sendCustomWhatsAppMessage(message, phoneNumber = '201234567890') {
 // Save complete order data to simple local storage (no API)
 async function saveCompleteOrderData() {
     const orderData = {
+        id: Date.now(),
         orderId: 'ORD-' + Date.now(),
         customer: {
             name: customerInfo.name,
@@ -1053,18 +1054,17 @@ async function saveCompleteOrderData() {
             city: customerInfo.city || '',
             address: customerInfo.address || ''
         },
-        products: cart.map(item => ({
+        items: cart.map(item => ({
             name: item.name,
             category: item.category,
             price: item.price,
             quantity: item.quantity
         })),
-        totals: {
-            totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
-            totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-        },
+        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         paymentMethod: customerInfo.paymentMethod || 'cash_on_delivery',
-        notes: customerInfo.notes || ''
+        notes: customerInfo.notes || '',
+        orderDate: new Date().toISOString(),
+        status: 'pending'
     };
     
     try {
@@ -1074,27 +1074,20 @@ async function saveCompleteOrderData() {
             throw new Error('يجب تسجيل الدخول أولاً لحفظ الطلب');
         }
 
-        // Add timestamp and source
-        orderData.timestamp = new Date().toISOString();
-        orderData.source = 'website';
-        
-        // Save directly to local storage (no API calls)
-        saveCompleteOrderToLocalStorage(orderData);
+        // Save order directly to localStorage
+        let existingOrders = JSON.parse(localStorage.getItem('forsa_orders') || '[]');
+        existingOrders.push(orderData);
+        localStorage.setItem('forsa_orders', JSON.stringify(existingOrders));
         
         showNotification('تم حفظ الطلب بنجاح! يمكن الوصول إليه من لوحة الإدارة.', 'success');
-        console.log('✅ Order saved to local storage successfully');
+        console.log('✅ Order saved to localStorage successfully:', orderData.orderId);
+        console.log('📊 Total orders in storage:', existingOrders.length);
         
         return Promise.resolve(orderData);
         
     } catch (error) {
         console.error('❌ Error saving order:', error);
-        
-        // Still save locally even if authentication fails
-        orderData.timestamp = new Date().toISOString();
-        orderData.source = 'website_anonymous';
-        saveCompleteOrderToLocalStorage(orderData);
-        console.log('✅ Order saved to local storage as backup');
-        
+        showNotification('حدث خطأ في حفظ الطلب: ' + error.message, 'error');
         throw error;
     }
 }
