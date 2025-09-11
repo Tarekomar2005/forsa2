@@ -58,6 +58,15 @@ git push -u origin main
 - **Main Website**: `https://your-app.vercel.app/`
 - **Authentication**: `https://your-app.vercel.app/auth`
 - **Admin Panel**: `https://your-app.vercel.app/admin`
+- **Debug Files**: `https://your-app.vercel.app/api/debug/files`
+- **Health Check**: `https://your-app.vercel.app/api/health`
+
+### Troubleshooting CSS Issues
+If styles are not loading:
+1. Check `/api/debug/files` to verify files exist
+2. Manually test CSS: `https://your-app.vercel.app/css/style.css`
+3. Check browser console for 404 errors
+4. Verify MIME types in Network tab
 
 ## 🔧 Configuration Files
 

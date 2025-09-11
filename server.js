@@ -49,7 +49,32 @@ function generateId(type) {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// Serve static files with proper MIME types
+app.use('/css', express.static(path.join(__dirname, 'css'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+app.use('/js', express.static(path.join(__dirname, 'js'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -58,6 +83,35 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         database: 'JSON File Database Connected',
         environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Explicit routes for static files to ensure proper serving
+app.get('/css/style.css', (req, res) => {
+    res.setHeader('Content-Type', 'text/css');
+    res.sendFile(path.join(__dirname, 'css', 'style.css'));
+});
+
+app.get('/js/script.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'js', 'script.js'));
+});
+
+// Debug route to check file existence
+app.get('/api/debug/files', (req, res) => {
+    const fs = require('fs');
+    const cssExists = fs.existsSync(path.join(__dirname, 'css', 'style.css'));
+    const jsExists = fs.existsSync(path.join(__dirname, 'js', 'script.js'));
+    const indexExists = fs.existsSync(path.join(__dirname, 'index.html'));
+    
+    res.json({
+        files: {
+            'css/style.css': cssExists,
+            'js/script.js': jsExists,
+            'index.html': indexExists
+        },
+        __dirname: __dirname,
+        NODE_ENV: process.env.NODE_ENV
     });
 });
 
