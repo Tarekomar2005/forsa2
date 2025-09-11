@@ -366,14 +366,19 @@ app.get('/api/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Forsa Server running on http://localhost:${PORT}`);
+    console.log(`🌐 External access: http://192.168.1.7:${PORT}`);
     console.log(`📊 Database: JSON File Database`);
     console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 10)}...`);
     console.log(`\n📱 Access URLs:`);
-    console.log(`   Authentication: http://localhost:${PORT}/auth`);
-    console.log(`   Main Website: http://localhost:${PORT}/`);
-    console.log(`   Admin Panel: http://localhost:${PORT}/admin`);
+    console.log(`   Local Authentication: http://localhost:${PORT}/auth`);
+    console.log(`   External Authentication: http://192.168.1.7:${PORT}/auth`);
+    console.log(`   Local Main Website: http://localhost:${PORT}/`);
+    console.log(`   External Main Website: http://192.168.1.7:${PORT}/`);
+    console.log(`   Local Admin Panel: http://localhost:${PORT}/admin`);
+    console.log(`   External Admin Panel: http://192.168.1.7:${PORT}/admin`);
+    console.log(`\n🔗 Share this URL with other devices: http://192.168.1.7:${PORT}`);
 });
 
 module.exports = app;
