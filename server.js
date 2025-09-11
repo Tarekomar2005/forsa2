@@ -356,6 +356,10 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-api.html'));
 });
 
+app.get('/test', (req, res) => {
+    res.sendFile(path.join(__dirname, 'test.html'));
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ 

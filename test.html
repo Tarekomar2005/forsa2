@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الاتصال - Forsa</title>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+        .success {
+            color: #2ecc71;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .info {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="success">
+            <i class="fas fa-check-circle"></i>
+            نجح الاتصال!
+        </div>
+        
+        <div class="info">
+            <p>✅ الخادم يعمل بشكل صحيح</p>
+            <p>✅ يمكن الوصول من هذا الجهاز</p>
+            <p>🌐 عنوان الخادم: <span id="serverUrl"></span></p>
+            <p>📱 نوع الجهاز: <span id="deviceType"></span></p>
+        </div>
+
+        <div>
+            <button class="btn" onclick="goToMainSite()">
+                <i class="fas fa-home"></i>
+                الموقع الرئيسي
+            </button>
+            <button class="btn" onclick="goToAuth()">
+                <i class="fas fa-user"></i>
+                تسجيل الدخول
+            </button>
+            <button class="btn" onclick="goToAdmin()">
+                <i class="fas fa-shield-alt"></i>
+                لوحة الإدارة
+            </button>
+        </div>
+
+        <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+            <p>إذا كنت ترى هذه الصفحة، فإن الاتصال يعمل بشكل صحيح</p>
+            <p>يمكنك الآن الانتقال إلى الموقع الرئيسي</p>
+        </div>
+    </div>
+
+    <script>
+        // Get current server URL dynamically
+        function getServerUrl() {
+            const currentHost = window.location.host;
+            const protocol = window.location.protocol;
+            
+            if (currentHost && currentHost !== '') {
+                return `${protocol}//${currentHost}`;
+            }
+            
+            return 'http://localhost:3001';
+        }
+
+        // Display server info
+        document.getElementById('serverUrl').textContent = window.location.host;
+        document.getElementById('deviceType').textContent = /Mobi|Android/i.test(navigator.userAgent) ? 'جهاز محمول' : 'كمبيوتر';
+
+        // Navigation functions
+        function goToMainSite() {
+            const serverUrl = getServerUrl();
+            window.location.href = `${serverUrl}/`;
+        }
+
+        function goToAuth() {
+            const serverUrl = getServerUrl();
+            window.location.href = `${serverUrl}/auth`;
+        }
+
+        function goToAdmin() {
+            const serverUrl = getServerUrl();
+            window.location.href = `${serverUrl}/admin`;
+        }
+
+        // Test API connection
+        async function testAPI() {
+            try {
+                const serverUrl = getServerUrl();
+                const response = await fetch(`${serverUrl}/api/health`);
+                const data = await response.json();
+                console.log('API Test Success:', data);
+                
+                const apiStatus = document.createElement('p');
+                apiStatus.innerHTML = '✅ API يعمل بشكل صحيح';
+                apiStatus.style.color = '#2ecc71';
+                document.querySelector('.info').appendChild(apiStatus);
+            } catch (error) {
+                console.error('API Test Failed:', error);
+                const apiStatus = document.createElement('p');
+                apiStatus.innerHTML = '❌ خطأ في API: ' + error.message;
+                apiStatus.style.color = '#e74c3c';
+                document.querySelector('.info').appendChild(apiStatus);
+            }
+        }
+
+        // Run API test on load
+        testAPI();
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>
