@@ -4,17 +4,6 @@
     { "src": "server.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "server.js" },
-    { "src": "/auth", "dest": "auth.html" },
-    { "src": "/admin", "dest": "admin-api.html" },
-    { "src": "/test", "dest": "test.html" },
-    { "src": "/debug", "dest": "debug.html" },
-    { "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))", "dest": "/$1" },
-    { "src": "/(.*)", "dest": "index.html" }
-  ],
-  "functions": {
-    "server.js": {
-      "maxDuration": 10
-    }
-  }
+    { "src": "/(.*)", "dest": "server.js" }
+  ]
 }

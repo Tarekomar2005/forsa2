@@ -51,6 +51,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        database: 'JSON File Database Connected',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 // Middleware for authentication
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -367,13 +377,9 @@ app.get('/debug', (req, res) => {
     res.sendFile(path.join(__dirname, 'debug.html'));
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        database: 'JSON File Database Connected'
-    });
+// Default route for any unmatched routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start server (only in development)

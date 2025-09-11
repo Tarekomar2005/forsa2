@@ -29,7 +29,13 @@ npm run dev
 
 ## 🌐 Vercel Deployment
 
-### Step 1: Push to GitHub
+### Step 1: Prepare Configuration
+The project is configured as a **complete Express.js app** with:
+- `vercel.json` - Routes all traffic to `server.js`
+- `server.js` - Exports the Express app for Vercel
+- Environment variables for production
+
+### Step 2: Push to GitHub
 ```bash
 git init
 git add .
@@ -39,15 +45,16 @@ git remote add origin YOUR_GITHUB_REPO_URL
 git push -u origin main
 ```
 
-### Step 2: Deploy to Vercel
+### Step 3: Deploy to Vercel
 1. Go to [vercel.com](https://vercel.com)
 2. Import your GitHub repository
-3. Set Environment Variables:
+3. Vercel will automatically detect the configuration
+4. Set Environment Variables:
    - `NODE_ENV=production`
    - `JWT_SECRET=your_super_secret_key_here`
-4. Deploy!
+5. Deploy!
 
-### Step 3: Access URLs
+### Step 4: Access URLs
 - **Main Website**: `https://your-app.vercel.app/`
 - **Authentication**: `https://your-app.vercel.app/auth`
 - **Admin Panel**: `https://your-app.vercel.app/admin`
